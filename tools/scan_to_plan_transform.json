@@ -1,0 +1,22 @@
+{
+  "description": "plan_mm = R(theta) * (scan_m * 1000) + T ; yaw_plan = yaw_scan + theta",
+  "theta_deg": 179.4,
+  "scale": 1000.0,
+  "T_mm": [
+    -36015.83,
+    54681.59
+  ],
+  "matrix_2x3": [
+    [
+      -999.945169,
+      -10.471784,
+      -36015.83
+    ],
+    [
+      10.471784,
+      -999.945169,
+      54681.59
+    ]
+  ],
+  "method": "automatic fit: maximise stations inside A-FLOR-PATT corridor hatch + rooms B6-217/B6-218"
+}

@@ -1,0 +1,38 @@
+{
+  "project_name": "VGU Building B6 - 2nd Floor",
+  "project_subtitle": "360° Walkthrough (Oct 2026)",
+  "panorama_dir": "F:/261102_ BIM project _ 2nd floor - B6/360 image/hdr",
+  "transform_file": "scan_to_plan_transform.json",
+  "viewer_template": "viewer_template.html",
+  "output_dir": "..",
+  "scanner_height_m": 1.6,
+  "images": {
+    "hd_resolution": 4096,
+    "hd_quality": 88,
+    "web_resolution": 2560,
+    "web_quality": 82,
+    "thumbnail_resolution": 512,
+    "fill_nadir": true
+  },
+  "floorplan": {
+    "dxf": "B6_tang2.dxf",
+    "units_to_m": 0.001,
+    "margin_m": 1.5,
+    "width_px": 4096,
+    "background": "#0b0d13",
+    "foreground": "#c9d3e0",
+    "highlight_layer": "A-FLOR-PATT",
+    "highlight_color": "#16c6e8",
+    "highlight_alpha": 0.16,
+    "floor_z": 0.0
+  },
+  "descriptions": {
+    "S001": "Room B6-217",
+    "S002": "Room B6-217",
+    "S024": "Room B6-218",
+    "S025": "Room B6-218",
+    "S026": "Room B6-218"
+  },
+  "mattertags": [],
+  "pano_yaw_offset_deg": 90
+}
