@@ -148,6 +148,62 @@ def render_floorplan(dxf_path, out, fcfg):
     return meta
 
 
+
+# ---------------------------------------------------------------- line of sight
+def compute_visibility(stations, dxf_path, vcfg, u2m):
+    """Station B is shown inside station A's panorama when the straight line A->B is not blocked
+    by a wall in the DXF (doors/glass do not block), or when A-B is a registration link."""
+    import ezdxf, shapely
+    from shapely.geometry import LineString
+    from ezdxf import path as zpath
+    doc = ezdxf.readfile(dxf_path); msp = doc.modelspace(); s = u2m
+    wl = set(vcfg.get("wall_layers", ["A-WALL", "S-COLS", "I-WALL"]))
+    hl = set(vcfg.get("wall_hatch_layers", ["A-WALL-PATT", "S-COLS"]))
+    segs = []
+    for e in msp.query("LINE"):
+        if e.dxf.layer in wl:
+            segs.append(LineString([(e.dxf.start.x * s, e.dxf.start.y * s), (e.dxf.end.x * s, e.dxf.end.y * s)]))
+    for e in msp.query("INSERT"):
+        if e.dxf.layer in wl:
+            try:
+                for v in e.virtual_entities():
+                    if v.dxftype() == "LINE":
+                        segs.append(LineString([(v.dxf.start.x * s, v.dxf.start.y * s), (v.dxf.end.x * s, v.dxf.end.y * s)]))
+            except Exception:
+                pass
+    for e in msp.query("HATCH"):
+        if e.dxf.layer in hl:
+            for bp in e.paths:
+                v = [(q.x * s, q.y * s) for q in zpath.from_hatch_boundary_path(bp).flattening(5)]
+                if len(v) > 1:
+                    segs.append(LineString(v))
+    tree = shapely.STRtree(segs)
+    tol = vcfg.get("lateral_tolerance_m", 0.25)
+    maxd = vcfg.get("max_distance_m", 40.0)
+    P = [np.array([st["surveyPosition"]["x"], st["surveyPosition"]["y"]]) for st in stations]
+
+    def clear(a, b):
+        d = np.linalg.norm(b - a); u = (b - a) / d; n = np.array([-u[1], u[0]])
+        for off in (0.0, tol, -tol):          # tolerate ~0.25 m position error near wall corners
+            seg = LineString([a + u * 0.15 + n * off, b - u * 0.15 + n * off])
+            if not any(segs[k].intersects(seg) for k in tree.query(seg)):
+                return True
+        return False
+
+    ids = [st["id"] for st in stations]
+    vis = {i: set() for i in ids}
+    for i in range(len(P)):
+        for j in range(i + 1, len(P)):
+            d = np.linalg.norm(P[j] - P[i])
+            if 0.3 < d <= maxd and clear(P[i], P[j]):
+                vis[ids[i]].add(ids[j]); vis[ids[j]].add(ids[i])
+    for a, b in vcfg.get("links", []):          # registration links: these scans saw each other
+        if a in vis and b in vis:
+            vis[a].add(b); vis[b].add(a)
+    for st in stations:
+        st["visible"] = sorted(vis[st["id"]])
+    return stations
+
 # ---------------------------------------------------------------- viewer
 def patch_viewer(template, out, cfg):
     html = Path(template).read_text(encoding="utf-8")
@@ -211,6 +267,40 @@ def patch_viewer(template, out, cfg):
     html = re.sub(r"const mattertagDefs = \[.*?\n    \];",
                   "const mattertagDefs = " + json.dumps(cfg.get("mattertags", []), ensure_ascii=False) + ";",
                   html, count=1, flags=re.S)
+    # --- floor markers: small, lying on the floor (scale from config, 1.0 = original template size)
+    k = cfg.get("marker_scale", 0.2)
+    html = html.replace("const ringGeo = new THREE.RingGeometry(1.60, 2.30, 48);",
+                        f"const ringGeo = new THREE.RingGeometry({1.60*k:.3f}, {2.30*k:.3f}, 48);")
+    html = html.replace("const pulseGeo = new THREE.RingGeometry(2.35, 3.20, 48);",
+                        f"const pulseGeo = new THREE.RingGeometry({2.35*k:.3f}, {3.20*k:.3f}, 48);")
+    html = html.replace("const decalGeo = new THREE.CircleGeometry(1.55, 48);",
+                        f"const decalGeo = new THREE.CircleGeometry({1.55*k:.3f}, 48);")
+    html = html.replace("const hitGeo = new THREE.CylinderGeometry(4.2, 4.2, 3.5, 16);",
+                        f"const hitGeo = new THREE.CylinderGeometry({max(0.5, 4.2*k):.3f}, {max(0.5, 4.2*k):.3f}, 0.6, 16);")
+    html = html.replace("hitMesh.position.set(0, 0, 0.6);", "hitMesh.position.set(0, 0, 0.3);")
+    bz = cfg.get("badge_height_m", 0.12)
+    html = html.replace("waypointSprite.position.set(0, 0, 0.6);", f"waypointSprite.position.set(0, 0, {bz});")
+    html = html.replace("puck.userData.waypointSprite.position.z = 0.6 + Math.sin(time * 0.0035 + puck.userData.stationIndex) * 0.07;",
+                        f"puck.userData.waypointSprite.position.z = {bz} + Math.sin(time * 0.0035 + puck.userData.stationIndex) * 0.01;")
+    html = html.replace("sprite.scale.set(3.2, 1.2, 1);\n      return sprite;\n    }\n",
+                        f"sprite.scale.set({3.2*k:.3f}, {1.2*k:.3f}, 1);\n      return sprite;\n    }}\n", 1)
+    # --- show every station that is in line of sight (scan_stations.json "visible"), not only prev/next
+    old_reach = html[html.index("    function getReachableStationIndices(curIdx) {"):html.index("    function updateInImagePucks() {")]
+    new_reach = """    function getReachableStationIndices(curIdx) {
+      const cur = state.stations[curIdx]; if (!cur) return [];
+      const out = [];
+      const add = (i) => { if (i >= 0 && i !== curIdx && state.stations[i] && state.stations[i].hasPanorama && !out.includes(i)) out.push(i); };
+      add(curIdx + 1); add(curIdx - 1);                       // walk order first (keeps W / S and default view)
+      if (Array.isArray(cur.visible)) {
+        cur.visible.forEach(id => add(state.stations.findIndex(s => s.id === id)));
+        return out.filter(i => cur.visible.includes(state.stations[i].id) || Math.abs(i - curIdx) === 1);
+      }
+      return out;
+    }
+
+"""
+    html = html.replace(old_reach, new_reach)
+    html = html.replace("if (dist < 3.5) {", "if (dist < 0.3) {")
     leftovers = [k for k in ("-66.5, 171.2", "bridge_bpa_colored.glb\"", "potree_bridge") if k in html]
     (out / "index.html").write_text(html, encoding="utf-8")
     return leftovers
@@ -263,6 +353,10 @@ def main():
             src = pano_dir / f"{name}.jpg"
             print(f"[{i:>2}/{len(raw)}] {name}")
             process_pano(src, name, out, cfg.get("images", {}))
+    if cfg.get("visibility", {}).get("enable", True):
+        compute_visibility(stations, str(rp(cfg["floorplan"]["dxf"])), cfg.get("visibility", {}), u2m)
+        print("line of sight: avg %.1f visible stations per station"
+              % (sum(len(st["visible"]) for st in stations) / len(stations)))
     json.dump(stations, open(out / "scan_stations.json", "w", encoding="utf-8"), indent=2)
     print(f"stations: {len(stations)}")
 
