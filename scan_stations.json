@@ -21,7 +21,12 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S001.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S001.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S001.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S001.jpg",
+    "visible": [
+      2,
+      22,
+      23
+    ]
   },
   {
     "id": 2,
@@ -45,7 +50,13 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S002.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S002.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S002.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S002.jpg",
+    "visible": [
+      1,
+      22,
+      23,
+      26
+    ]
   },
   {
     "id": 3,
@@ -69,7 +80,17 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S003.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S003.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S003.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S003.jpg",
+    "visible": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      36
+    ]
   },
   {
     "id": 4,
@@ -93,7 +114,17 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S004.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S004.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S004.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S004.jpg",
+    "visible": [
+      3,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      36
+    ]
   },
   {
     "id": 5,
@@ -117,7 +148,18 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S005.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S005.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S005.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S005.jpg",
+    "visible": [
+      3,
+      4,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      36
+    ]
   },
   {
     "id": 6,
@@ -141,7 +183,16 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S006.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S006.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S006.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S006.jpg",
+    "visible": [
+      3,
+      4,
+      5,
+      7,
+      8,
+      10,
+      11
+    ]
   },
   {
     "id": 7,
@@ -165,7 +216,16 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S007.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S007.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S007.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S007.jpg",
+    "visible": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      11
+    ]
   },
   {
     "id": 8,
@@ -189,7 +249,16 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S008.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S008.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S008.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S008.jpg",
+    "visible": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      10,
+      11
+    ]
   },
   {
     "id": 9,
@@ -213,7 +282,11 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S009.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S009.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S009.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S009.jpg",
+    "visible": [
+      5,
+      36
+    ]
   },
   {
     "id": 10,
@@ -237,7 +310,18 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S010.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S010.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S010.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S010.jpg",
+    "visible": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      11,
+      12,
+      13
+    ]
   },
   {
     "id": 11,
@@ -261,7 +345,17 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S011.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S011.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S011.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S011.jpg",
+    "visible": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      12
+    ]
   },
   {
     "id": 12,
@@ -285,7 +379,12 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S012.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S012.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S012.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S012.jpg",
+    "visible": [
+      10,
+      11,
+      13
+    ]
   },
   {
     "id": 13,
@@ -309,7 +408,16 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S013.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S013.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S013.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S013.jpg",
+    "visible": [
+      10,
+      12,
+      14,
+      15,
+      17,
+      18,
+      19
+    ]
   },
   {
     "id": 14,
@@ -333,7 +441,13 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S014.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S014.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S014.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S014.jpg",
+    "visible": [
+      13,
+      15,
+      16,
+      18
+    ]
   },
   {
     "id": 15,
@@ -357,7 +471,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S015.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S015.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S015.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S015.jpg",
+    "visible": [
+      13,
+      14,
+      16,
+      17,
+      18,
+      19
+    ]
   },
   {
     "id": 16,
@@ -381,7 +503,12 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S016.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S016.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S016.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S016.jpg",
+    "visible": [
+      14,
+      15,
+      18
+    ]
   },
   {
     "id": 17,
@@ -405,7 +532,13 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S017.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S017.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S017.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S017.jpg",
+    "visible": [
+      13,
+      15,
+      18,
+      19
+    ]
   },
   {
     "id": 18,
@@ -429,7 +562,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S018.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S018.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S018.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S018.jpg",
+    "visible": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      19
+    ]
   },
   {
     "id": 19,
@@ -453,7 +594,14 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S019.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S019.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S019.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S019.jpg",
+    "visible": [
+      13,
+      15,
+      17,
+      18,
+      20
+    ]
   },
   {
     "id": 20,
@@ -477,7 +625,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S020.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S020.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S020.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S020.jpg",
+    "visible": [
+      19,
+      21,
+      22,
+      24,
+      25,
+      27
+    ]
   },
   {
     "id": 21,
@@ -501,7 +657,13 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S021.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S021.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S021.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S021.jpg",
+    "visible": [
+      20,
+      22,
+      24,
+      27
+    ]
   },
   {
     "id": 22,
@@ -525,7 +687,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S022.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S022.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S022.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S022.jpg",
+    "visible": [
+      1,
+      2,
+      20,
+      21,
+      23,
+      27
+    ]
   },
   {
     "id": 23,
@@ -549,7 +719,13 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S023.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S023.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S023.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S023.jpg",
+    "visible": [
+      1,
+      2,
+      22,
+      27
+    ]
   },
   {
     "id": 24,
@@ -573,7 +749,13 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S024.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S024.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S024.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S024.jpg",
+    "visible": [
+      20,
+      21,
+      25,
+      26
+    ]
   },
   {
     "id": 25,
@@ -597,7 +779,12 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S025.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S025.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S025.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S025.jpg",
+    "visible": [
+      20,
+      24,
+      26
+    ]
   },
   {
     "id": 26,
@@ -621,7 +808,12 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S026.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S026.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S026.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S026.jpg",
+    "visible": [
+      2,
+      24,
+      25
+    ]
   },
   {
     "id": 27,
@@ -645,7 +837,14 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S027.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S027.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S027.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S027.jpg",
+    "visible": [
+      20,
+      21,
+      22,
+      23,
+      28
+    ]
   },
   {
     "id": 28,
@@ -669,7 +868,16 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S028.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S028.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S028.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S028.jpg",
+    "visible": [
+      27,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34
+    ]
   },
   {
     "id": 29,
@@ -693,7 +901,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S029.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S029.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S029.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S029.jpg",
+    "visible": [
+      28,
+      30,
+      31,
+      32,
+      33,
+      34
+    ]
   },
   {
     "id": 30,
@@ -717,7 +933,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S030.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S030.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S030.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S030.jpg",
+    "visible": [
+      28,
+      29,
+      31,
+      32,
+      33,
+      34
+    ]
   },
   {
     "id": 31,
@@ -741,7 +965,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S031.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S031.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S031.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S031.jpg",
+    "visible": [
+      28,
+      29,
+      30,
+      32,
+      33,
+      34
+    ]
   },
   {
     "id": 32,
@@ -765,7 +997,15 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S032.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S032.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S032.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S032.jpg",
+    "visible": [
+      28,
+      29,
+      30,
+      31,
+      33,
+      34
+    ]
   },
   {
     "id": 33,
@@ -789,7 +1029,16 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S033.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S033.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S033.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S033.jpg",
+    "visible": [
+      28,
+      29,
+      30,
+      31,
+      32,
+      34,
+      35
+    ]
   },
   {
     "id": 34,
@@ -813,7 +1062,16 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S034.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S034.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S034.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S034.jpg",
+    "visible": [
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      35
+    ]
   },
   {
     "id": 35,
@@ -837,7 +1095,12 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S035.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S035.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S035.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S035.jpg",
+    "visible": [
+      33,
+      34,
+      36
+    ]
   },
   {
     "id": 36,
@@ -861,6 +1124,13 @@
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S036.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S036.jpg",
-    "thumbnail": "thumbnails/VGU OCT 2026- S036.jpg"
+    "thumbnail": "thumbnails/VGU OCT 2026- S036.jpg",
+    "visible": [
+      3,
+      4,
+      5,
+      9,
+      35
+    ]
   }
 ]

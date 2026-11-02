@@ -1151,10 +1151,10 @@
         state.dollhouseBeaconsGroup.remove(state.dollhouseBeaconsGroup.children[0]);
       }
 
-      const ringGeo = new THREE.RingGeometry(1.60, 2.30, 48);
-      const pulseGeo = new THREE.RingGeometry(2.35, 3.20, 48);
-      const decalGeo = new THREE.CircleGeometry(1.55, 48);
-      const hitGeo = new THREE.CylinderGeometry(4.2, 4.2, 3.5, 16);
+      const ringGeo = new THREE.RingGeometry(0.320, 0.460, 48);
+      const pulseGeo = new THREE.RingGeometry(0.470, 0.640, 48);
+      const decalGeo = new THREE.CircleGeometry(0.310, 48);
+      const hitGeo = new THREE.CylinderGeometry(0.840, 0.840, 0.6, 16);
       hitGeo.rotateX(Math.PI / 2); // Orient cylinder height vertically (along Z axis)
 
       const orbGeo = new THREE.SphereGeometry(0.45, 16, 16);
@@ -1222,7 +1222,7 @@
 
           // Floating 3D Waypoint Badge above the floor disc (ensures instant visibility even from far away)
           const waypointSprite = createWalkWaypointSprite(`S${String(st.id).padStart(2, '0')}`);
-          waypointSprite.position.set(0, 0, 0.6);
+          waypointSprite.position.set(0, 0, 0.12);
           waypointSprite.renderOrder = 105;
           waypointSprite.userData = { isNavPuck: true, stationIndex: idx, stationData: st };
           navPuck.add(waypointSprite);
@@ -1234,7 +1234,7 @@
             depthWrite: false
           });
           const hitMesh = new THREE.Mesh(hitGeo, hitMat);
-          hitMesh.position.set(0, 0, 0.6);
+          hitMesh.position.set(0, 0, 0.3);
           hitMesh.userData = {
             isNavPuck: true,
             stationIndex: idx,
@@ -1379,7 +1379,7 @@
         depthWrite: false
       });
       const sprite = new THREE.Sprite(mat);
-      sprite.scale.set(3.2, 1.2, 1);
+      sprite.scale.set(0.640, 0.240, 1);
       return sprite;
     }
 
@@ -1414,25 +1414,17 @@
 
     // Determine reachable adjacent station indices for the current frame
     function getReachableStationIndices(curIdx) {
-      const reachable = [];
-      // Immediate previous station with panorama
-      for (let i = curIdx - 1; i >= 0; i--) {
-        if (state.stations[i] && state.stations[i].hasPanorama) {
-          reachable.push(i);
-          break; // Only the immediate previous station
-        }
+      const cur = state.stations[curIdx]; if (!cur) return [];
+      const out = [];
+      const add = (i) => { if (i >= 0 && i !== curIdx && state.stations[i] && state.stations[i].hasPanorama && !out.includes(i)) out.push(i); };
+      add(curIdx + 1); add(curIdx - 1);                       // walk order first (keeps W / S and default view)
+      if (Array.isArray(cur.visible)) {
+        cur.visible.forEach(id => add(state.stations.findIndex(s => s.id === id)));
+        return out.filter(i => cur.visible.includes(state.stations[i].id) || Math.abs(i - curIdx) === 1);
       }
-      // Immediate next station with panorama
-      for (let i = curIdx + 1; i < state.stations.length; i++) {
-        if (state.stations[i] && state.stations[i].hasPanorama) {
-          reachable.push(i);
-          break; // Only the immediate next station
-        }
-      }
-      return reachable;
+      return out;
     }
 
-    // Update in-image navigation buttons: ONLY SHOW NEXT/PREVIOUS REACHABLE STATIONS FOR THIS FRAME
     function updateInImagePucks() {
       const curIdx = state.currentStationIndex;
       const curPos = state.stations[curIdx]?.surveyPosition;
@@ -1454,7 +1446,7 @@
         }
 
         const dist = Math.hypot(st.surveyPosition.x - curPos.x, st.surveyPosition.y - curPos.y);
-        if (dist < 3.5) {
+        if (dist < 0.3) {
           puck.visible = false;
           return;
         }
@@ -2136,7 +2128,7 @@
           puck.userData.decalMesh.scale.set(pulse, pulse, 1);
         }
         if (puck.userData.waypointSprite) {
-          puck.userData.waypointSprite.position.z = 0.6 + Math.sin(time * 0.0035 + puck.userData.stationIndex) * 0.07;
+          puck.userData.waypointSprite.position.z = 0.12 + Math.sin(time * 0.0035 + puck.userData.stationIndex) * 0.01;
         }
       });
 
