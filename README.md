@@ -55,3 +55,7 @@ Edit `tools/viewer_template_floorplan.html` (not `index.html`, which is regenera
   Stations inside the corridor hatch only take corridor labels. Fix a wrong one with `area_labels.overrides`
   (e.g. `"S024": "B6-218"`); `descriptions` still overrides the description text.
 * `texture_cache_max` (default 6): panoramas kept in GPU memory; older ones are freed.
+* **Storeys** (`floors`, `station_level`, `floor_height_m` in `tour_config.json`): every storey's DXF is rendered in the
+  same frame (`floorplan_L<n>.png`, listed in `floorplan.json`) and stacked `floor_height_m` apart in 🗺️ 3D Plan; the
+  floor selector on the right isolates one storey. Re-render after changing a DXF:
+  `python tools/build_tour_from_panos.py --update-viewer --render-floors` (≈1–2 min).

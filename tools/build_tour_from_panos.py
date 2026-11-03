@@ -91,7 +91,7 @@ def process_pano(src, name, out, icfg):
 
 
 # ---------------------------------------------------------------- floor plan
-def render_floorplan(dxf_path, out, fcfg):
+def render_floorplan(dxf_path, out, fcfg, extents=None, filename="floorplan.png", width_px=None):
     import ezdxf, matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -104,9 +104,13 @@ def render_floorplan(dxf_path, out, fcfg):
     msp = doc.modelspace()
     s = fcfg.get("units_to_m", 0.001)
     margin = fcfg.get("margin_m", 1.5) / s
-    x0, y0, _ = doc.header["$EXTMIN"]; x1, y1, _ = doc.header["$EXTMAX"]
-    x0 -= margin; y0 -= margin; x1 += margin; y1 += margin
-    px_w = fcfg.get("width_px", 4096)
+    if extents:                                   # common frame for all storeys (DXF units, margin included)
+        x0, y0, x1, y1 = extents
+    else:
+        x0, y0, _ = doc.header["$EXTMIN"]; x1, y1, _ = doc.header["$EXTMAX"]
+        x0 -= margin; y0 -= margin; x1 += margin; y1 += margin
+    px_w = width_px or fcfg.get("width_px", 4096)
+    transparent = fcfg.get("transparent", False)
     px_h = int(px_w * (y1 - y0) / (x1 - x0))
     dpi = 100
     fig = plt.figure(figsize=(px_w / dpi, px_h / dpi), dpi=dpi)
@@ -144,16 +148,65 @@ def render_floorplan(dxf_path, out, fcfg):
     cfg = Configuration(color_policy=ColorPolicy.CUSTOM, custom_fg_color=fg,
                         background_policy=BackgroundPolicy.OFF, lineweight_scaling=0.6)
     ctx = RenderContext(doc)
+    skip = set(fcfg.get("exclude_layers", ["C-PROP-LINE"])) | {hl}
     Frontend(ctx, MatplotlibBackend(ax), config=cfg).draw_layout(
-        msp, finalize=False, filter_func=lambda e: e.dxf.layer != hl)
+        msp, finalize=False, filter_func=lambda e: e.dxf.layer not in skip)
     ax.set_xlim(x0, x1); ax.set_ylim(y0, y1); ax.set_aspect("auto")
-    fig.savefig(out / "floorplan.png", dpi=dpi, facecolor=bg)
+    if transparent:                               # lines only; the viewer draws a dark slab under each storey
+        fig.patch.set_alpha(0); ax.patch.set_alpha(0)
+    fig.savefig(out / filename, dpi=dpi, facecolor=("none" if transparent else bg), transparent=transparent)
     plt.close(fig)
-    Image.open(out / "floorplan.png").convert("RGB").save(out / "floorplan.png", optimize=True)
-    meta = {"image": "floorplan.png", "minX": x0 * s, "minY": y0 * s, "maxX": x1 * s, "maxY": y1 * s,
+    Image.open(out / filename).convert("RGBA" if transparent else "RGB").save(out / filename, optimize=True)
+    return {"image": filename, "minX": x0 * s, "minY": y0 * s, "maxX": x1 * s, "maxY": y1 * s,
             "z": fcfg.get("floor_z", 0.0)}
-    json.dump(meta, open(out / "floorplan.json", "w"), indent=2)
-    return meta
+
+
+def plan_extents(dxf_paths, layers=("A-WALL", "S-COLS", "I-WALL")):
+    """Union of the wall / column extents of several DXF plans (DXF units). Ignores far-away
+    objects such as property lines or title blocks that inflate $EXTMIN / $EXTMAX."""
+    import ezdxf
+    from ezdxf import bbox
+    q = "LINE LWPOLYLINE POLYLINE INSERT[" + " | ".join(f'layer=="{l}"' for l in layers) + "]"
+    box = None
+    for pth in dxf_paths:
+        b = bbox.extents(ezdxf.readfile(pth).modelspace().query(q))
+        if b.has_data:
+            r = (b.extmin.x, b.extmin.y, b.extmax.x, b.extmax.y)
+            box = r if box is None else (min(box[0], r[0]), min(box[1], r[1]), max(box[2], r[2]), max(box[3], r[3]))
+    return box
+
+
+def floor_list(cfg):
+    fl = cfg.get("floors")
+    if fl:
+        return sorted(fl, key=lambda f: f["level"])
+    return [{"level": cfg.get("station_level", 1), "name": "", "dxf": cfg["floorplan"]["dxf"]}]
+
+
+def render_floors(cfg, rp, out):
+    """One floor-plan image per storey, all in the same frame, stacked floor_height_m apart.
+    Writes floorplan.json = {top-level keys of the station storey (old format) + "floors": [...]}."""
+    fcfg = cfg["floorplan"]; s = fcfg.get("units_to_m", 0.001)
+    floors = floor_list(cfg)
+    H = float(cfg.get("floor_height_m", 5.0))
+    L0 = cfg.get("station_level", floors[0]["level"])
+    e = plan_extents([str(rp(f["dxf"])) for f in floors], fcfg.get("extent_layers", ["A-WALL", "S-COLS", "I-WALL"]))
+    m = fcfg.get("margin_m", 1.5) / s
+    ext = (e[0] - m, e[1] - m, e[2] + m, e[3] + m) if e else None
+    metas = []
+    for f in floors:
+        lv = f["level"]; main = (lv == L0)
+        wpx = fcfg.get("width_px", 4096) if main else fcfg.get("other_floor_width_px", 2048)
+        name = f"floorplan_L{lv}.png" if len(floors) > 1 else "floorplan.png"
+        print(f"  floor plan L{lv}: {f['dxf']} -> {name} ({wpx} px)")
+        meta = render_floorplan(str(rp(f["dxf"])), out, fcfg, ext, name, wpx)
+        meta.update(level=lv, name=f.get("name", f"Floor {lv}"), z=f.get("z", (lv - L0) * H), hasStations=main)
+        metas.append(meta)
+    base = next((m for m in metas if m["hasStations"]), metas[0])
+    doc = {k: base[k] for k in ("image", "minX", "minY", "maxX", "maxY", "z")}
+    doc.update(floorHeight=H, stationLevel=L0, floors=metas)
+    json.dump(doc, open(out / "floorplan.json", "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+    return doc
 
 
 
@@ -412,6 +465,8 @@ def finish_stations(stations, cfg, rp, u2m, out):
     print("walking order:", " ".join(f"S{i:03d}" for i in path))
     if jumps:
         print("  steps without line of sight:", ", ".join(f"S{a:03d}->S{b:03d}" for a, b in jumps))
+    for st in stations:
+        st.setdefault("floor", cfg.get("station_level", 1))
     stations.sort(key=lambda st: st["id"])
     json.dump(stations, open(out / "scan_stations.json", "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     print(f"stations: {len(stations)}")
@@ -425,6 +480,8 @@ def main():
     ap.add_argument("--update-viewer", action="store_true",
                     help="re-use <output_dir>/scan_stations.json (no panoramas needed): recompute line of sight, "
                          "area names, walking order and rewrite index.html")
+    ap.add_argument("--render-floors", action="store_true",
+                    help="with --update-viewer: also re-render the floor plans of all storeys (floors in tour_config.json)")
     a = ap.parse_args()
     cfg = json.load(open(a.config, encoding="utf-8"))
     base = Path(a.config).parent
@@ -437,6 +494,8 @@ def main():
     if a.update_viewer:
         stations = json.load(open(out / "scan_stations.json", encoding="utf-8"))
         finish_stations(stations, cfg, rp, u2m, out)
+        if a.render_floors:
+            print("floor plans:", len(render_floors(cfg, rp, out)["floors"]), "storeys")
         left = patch_viewer(rp(cfg["viewer_template"]), out, cfg)
         print("viewer written", "(unfilled tokens: %s)" % left if left else "")
         return
@@ -476,7 +535,7 @@ def main():
             process_pano(src, name, out, cfg.get("images", {}))
     finish_stations(stations, cfg, rp, u2m, out)
 
-    meta = render_floorplan(str(rp(cfg["floorplan"]["dxf"])), out, cfg["floorplan"])
+    meta = render_floors(cfg, rp, out)
     print("floor plan:", meta)
     left = patch_viewer(rp(cfg["viewer_template"]), out, cfg)
     print("viewer written", "(unfilled tokens: %s)" % left if left else "")

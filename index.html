@@ -255,6 +255,44 @@
       color: var(--mp-cyan);
     }
 
+    /* Floor selector (3D Plan / Floor Plan) */
+    .floor-dock {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: var(--mp-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--mp-border);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    .floor-pill {
+      background: transparent;
+      border: none;
+      color: var(--mp-text-muted);
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .floor-pill:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+    .floor-pill.active { background: var(--mp-cyan); color: #0b0d13; box-shadow: 0 0 12px var(--mp-cyan-glow); }
+    .floor-pill .pano-dot { color: var(--mp-cyan); margin-left: 6px; }
+    .floor-pill.active .pano-dot { color: #0b0d13; }
+
     /* Bottom Control Dock */
     .mp-bottom-dock {
       position: absolute;
@@ -640,6 +678,9 @@
     </button>
   </div>
 
+  <!-- Floor selector (filled from floorplan.json "floors") -->
+  <div class="floor-dock" id="floor-dock" style="display:none;"></div>
+
   <!-- Bottom Control Dock -->
   <div class="mp-bottom-dock">
     <!-- View Modes: Inside Tour, Dollhouse, Floor Plan -->
@@ -717,7 +758,10 @@
       currentStationIndex: 0,
       stations: [],
       walkOrder: [],  // station indices in walking order (scan_stations.json "walkIndex")
-      dollhouseMesh: null, // floor plan plane
+      dollhouseMesh: null, // floor plan of the storey with the scan stations
+      floors: [],          // storeys: { level, name, z, group, slab, plan, edge, label, ... }
+      activeFloor: 'all',  // 'all' or a storey level (3D Plan / Floor Plan)
+      stationLevel: null,
       photosphereMesh: null,
       panoVSpan: Math.PI * 2 * 1048 / 2560, // updated automatically from the first loaded panorama
       nextPhotosphereMesh: null,
@@ -868,28 +912,153 @@
 
     // Floor plan plane (DXF render) for 3D Plan / Floor Plan modes
     function loadDollhouseModels() {
-      // 2D floor plan (DXF render) laid on the floor plane, shown in Dollhouse / Floor Plan modes
+      // Floor plans (DXF renders), one plane per storey stacked floorHeight apart (3D Plan / Floor Plan modes).
+      // Textures are loaded the first time a storey is shown, so the 360° tour itself does not pay for them.
       fetch('floorplan.json').then(r => r.json()).then(fp => {
-        new THREE.TextureLoader().load(fp.image, (tex) => {
-          tex.colorSpace = THREE.SRGBColorSpace;
-          tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-          const w = fp.maxX - fp.minX, h = fp.maxY - fp.minY;
-          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
-                                   new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
-          m.position.set((fp.minX + fp.maxX) / 2, (fp.minY + fp.maxY) / 2, fp.z || 0);
-          m.renderOrder = -50;
-          state.dollhouseMesh = m;
-          m.visible = (state.mode === 'dollhouse' || state.mode === 'floorplan');
-          scene.add(m);
+        const list = (Array.isArray(fp.floors) && fp.floors.length) ? fp.floors : [{ ...fp, level: 0, name: '', hasStations: true }];
+        state.stationLevel = (list.find(f => f.hasStations) || list[0]).level;
+        list.forEach(f => {
+          const w = f.maxX - f.minX, h = f.maxY - f.minY;
+          const g = new THREE.Group();
+          g.position.set((f.minX + f.maxX) / 2, (f.minY + f.maxY) / 2, f.z || 0);
+          const slab = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+            new THREE.MeshBasicMaterial({ color: 0x0b0d13, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false }));
+          slab.position.z = -0.03;
+          const plan = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
+          const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w, h)),
+            new THREE.LineBasicMaterial({ color: 0x00d2ff, transparent: true, opacity: 0.5 }));
+          const label = createFloorLabelSprite(f.name || `L${f.level}`, f.hasStations);
+          label.position.set(-w / 2 + 4, h / 2 - 2, 1.5);
+          g.add(slab, plan, edge, label);
+          g.visible = false;
+          scene.add(g);
+          state.floors.push({ ...f, group: g, slab, plan, edge, label, texState: 'none' });
         });
+        state.floors.sort((a, b) => a.level - b.level);
+        state.dollhouseMesh = state.floors.find(f => f.level === state.stationLevel)?.group || null;
+        buildFloorDock();
+        updateVisibility();
       }).catch(() => console.log('No floor plan found'));
     }
+
+    function ensureFloorTexture(f) {
+      if (f.texState !== 'none') return;
+      f.texState = 'loading';
+      new THREE.TextureLoader().load(f.image, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        f.plan.material.map = tex;
+        f.plan.material.needsUpdate = true;
+        f.texState = 'ready';
+        updateFloorVisibility();
+      }, undefined, () => { f.texState = 'error'; });
+    }
+
+    function createFloorLabelSprite(text, hasStations) {
+      const c = document.createElement('canvas');
+      c.width = 320; c.height = 96;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = 'rgba(15, 20, 30, 0.88)';
+      ctx.strokeStyle = hasStations ? '#00d2ff' : 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.roundRect(6, 6, 308, 84, 20); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 40px "Inter", sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(text + (hasStations ? ' · 360°' : ''), 160, 50);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+      sprite.scale.set(10, 3, 1);
+      sprite.renderOrder = 200;
+      return sprite;
+    }
+
+    function buildFloorDock() {
+      const dock = document.getElementById('floor-dock');
+      dock.innerHTML = '';
+      if (state.floors.length < 2) return;
+      const add = (val, html) => {
+        const b = document.createElement('button');
+        b.className = 'floor-pill';
+        b.dataset.floor = String(val);
+        b.innerHTML = html;
+        b.addEventListener('click', () => setActiveFloor(val));
+        dock.appendChild(b);
+      };
+      add('all', '🏢 Toàn bộ');
+      [...state.floors].reverse().forEach(f =>                       // top storey first, like a lift panel
+        add(f.level, (f.name || `L${f.level}`) + (f.hasStations ? '<span class="pano-dot" title="360° stations">●</span>' : '')));
+    }
+
+    function effectiveFloor() {
+      // Floor Plan (top-down) shows one storey: the selected one, or the storey with the 360° stations
+      return (state.mode === 'floorplan' && state.activeFloor === 'all') ? state.stationLevel : state.activeFloor;
+    }
+
+    function updateFloorVisibility() {
+      const isPlan = (state.mode === 'dollhouse' || state.mode === 'floorplan');
+      const act = effectiveFloor();
+      state.floors.forEach(f => {
+        let vis = isPlan, slabOp = 0.9, planOp = 1.0, edgeOp = 0.6;
+        if (act === 'all') {
+          const main = (f.level === state.stationLevel);
+          slabOp = main ? 0.85 : 0.3; planOp = main ? 1.0 : 0.6; edgeOp = main ? 0.8 : 0.45;
+        } else if (f.level > act) {
+          vis = false;                                               // hide storeys above the selected one
+        } else if (f.level < act) {
+          slabOp = 0.12; planOp = 0.22; edgeOp = 0.25;               // storeys below: faint context
+        }
+        if (state.mode === 'floorplan' && f.level !== act) vis = false;
+        f.group.visible = vis;
+        if (vis) ensureFloorTexture(f);
+        f.slab.material.opacity = slabOp;
+        f.plan.material.opacity = (f.texState === 'ready') ? planOp : 0;
+        f.edge.material.opacity = edgeOp;
+        f.label.visible = vis && state.mode === 'dollhouse';
+      });
+      if (state.floors.length) {
+        state.dollhouseBeaconsGroup.visible = isPlan && (act === 'all' || act === state.stationLevel);
+      }
+      const dock = document.getElementById('floor-dock');
+      dock.style.display = (isPlan && state.floors.length > 1) ? 'flex' : 'none';
+      dock.querySelectorAll('.floor-pill').forEach(b => b.classList.toggle('active', b.dataset.floor === String(act)));
+    }
+
+    function setActiveFloor(val) {
+      state.activeFloor = val;
+      updateVisibility();
+      if (state.mode !== 'inside') frameView(800);
+      const f = state.floors.find(x => x.level === val);
+      showToast(val === 'all' ? '🏢 Toàn bộ tòa nhà' : `🏢 ${f?.name || 'L' + val}`);
+    }
+
+    // Camera framing for 3D Plan / Floor Plan, based on the floor-plan frame and the selected storey
+    function frameView(ms = 1000) {
+      let c = sceneCenter(), e = sceneExtent();
+      const fl = state.floors;
+      if (fl.length) {
+        const f0 = fl[0];
+        c = new THREE.Vector3((f0.minX + f0.maxX) / 2, (f0.minY + f0.maxY) / 2, 0);
+        e = Math.hypot(f0.maxX - f0.minX, f0.maxY - f0.minY) * 0.9;
+        const act = effectiveFloor();
+        const zs = fl.map(f => f.z || 0);
+        c.z = (act === 'all') ? (Math.min(...zs) + Math.max(...zs)) / 2 : (fl.find(f => f.level === act)?.z || 0);
+      }
+      const pos = (state.mode === 'floorplan')
+        ? new THREE.Vector3(c.x, c.y - 0.01, c.z + e * 0.95)
+        : new THREE.Vector3(c.x + e * 0.35, c.y - e * 0.85, c.z + e * 0.6);
+      new TWEEN.Tween(camera.position).to(pos, ms).easing(TWEEN.Easing.Cubic.Out).start();
+      new TWEEN.Tween(controls.target).to(c, ms).easing(TWEEN.Easing.Cubic.Out).start();
+    }
+
     // Update Visibility between Inside Tour and Dollhouse
     function updateVisibility() {
       const isDollhouse = (state.mode === 'dollhouse' || state.mode === 'floorplan');
-      if (state.dollhouseMesh) state.dollhouseMesh.visible = isDollhouse;
       state.dollhouseBeaconsGroup.visible = isDollhouse;
       state.mattertagsGroup.visible = isDollhouse;
+      updateFloorVisibility();          // storeys, floor selector, station beacons
 
       const isInside = (state.mode === 'inside');
       state.inImagePucksGroup.visible = isInside;
@@ -1583,16 +1752,11 @@
         document.getElementById('walk-nav-hud').style.display = 'none';
         controls.rotateSpeed = 0.8;
         controls.minDistance = 2.0;
-        controls.maxDistance = 500;
+        controls.maxDistance = 800;
         camera.fov = 60;
         camera.updateProjectionMatrix();
 
-        const _c = sceneCenter(), _e = sceneExtent();
-        const dollhouseCamPos = new THREE.Vector3(_c.x + _e * 0.25, _c.y - _e * 0.7, _c.z + _e * 0.75);
-        const centerDeck = sceneCenter(0);
-
-        new TWEEN.Tween(camera.position).to(dollhouseCamPos, 1200).easing(TWEEN.Easing.Cubic.Out).start();
-        new TWEEN.Tween(controls.target).to(centerDeck, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+        frameView(1200);
 
       } else if (newMode === 'floorplan') {
         showToast('🧭 Floor Plan View (Top-Down)');
@@ -1603,11 +1767,7 @@
         camera.fov = 60;
         camera.updateProjectionMatrix();
 
-        const centerDeck = sceneCenter(0);
-        const topDownPos = sceneCenter(sceneExtent() * 0.8); topDownPos.y -= 0.01;
-
-        new TWEEN.Tween(camera.position).to(topDownPos, 1000).easing(TWEEN.Easing.Cubic.Out).start();
-        new TWEEN.Tween(controls.target).to(centerDeck, 1000).easing(TWEEN.Easing.Cubic.Out).start();
+        frameView(1000);
       }
 
       updateVisibility();

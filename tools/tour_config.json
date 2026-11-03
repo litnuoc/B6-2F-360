@@ -24,7 +24,12 @@
     "highlight_layer": "A-FLOR-PATT",
     "highlight_color": "#16c6e8",
     "highlight_alpha": 0.16,
-    "floor_z": 0.0
+    "floor_z": 0.0,
+    "transparent": true,
+    "exclude_layers": [
+      "C-PROP-LINE"
+    ],
+    "other_floor_width_px": 2048
   },
   "descriptions": {
     "S001": "Room B6-217",
@@ -213,5 +218,35 @@
     "_comment": "overrides: force a station to an area code when the automatic choice is wrong"
   },
   "photo_base_url": "https://pub-a2d008360fd34bd5b516639baa7d69d2.r2.dev/vgu-b6-2f",
-  "_photo_base_url": "empty = images next to index.html (GitHub Pages); e.g. https://pub-xxxx.r2.dev/vgu-b6-2f to load photos/, photos_hd/, thumbnails/ from R2"
+  "_photo_base_url": "empty = images next to index.html (GitHub Pages); e.g. https://pub-xxxx.r2.dev/vgu-b6-2f to load photos/, photos_hd/, thumbnails/ from R2",
+  "station_level": 2,
+  "floor_height_m": 5.0,
+  "floors": [
+    {
+      "level": 1,
+      "name": "Tầng 1",
+      "dxf": "B6_tang1.dxf"
+    },
+    {
+      "level": 2,
+      "name": "Tầng 2",
+      "dxf": "B6_tang2.dxf"
+    },
+    {
+      "level": 3,
+      "name": "Tầng 3",
+      "dxf": "B6_tang3.dxf"
+    },
+    {
+      "level": 4,
+      "name": "Tầng 4",
+      "dxf": "B6_tang4.dxf"
+    },
+    {
+      "level": 5,
+      "name": "Tầng 5",
+      "dxf": "B6_tang5.dxf"
+    }
+  ],
+  "_floors": "storeys shown in 3D Plan / Floor Plan; z = (level - station_level) * floor_height_m unless a floor sets \"z\""
 }
