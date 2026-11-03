@@ -3,7 +3,7 @@
   "project_subtitle": "360° Walkthrough (Oct 2026)",
   "panorama_dir": "F:/261102_ BIM project _ 2nd floor - B6/360 image/hdr",
   "transform_file": "scan_to_plan_transform.json",
-  "viewer_template": "viewer_template.html",
+  "viewer_template": "viewer_template_floorplan.html",
   "output_dir": "..",
   "scanner_height_m": 1.6,
   "images": {
@@ -31,7 +31,8 @@
     "S002": "Room B6-217",
     "S024": "Room B6-218",
     "S025": "Room B6-218",
-    "S026": "Room B6-218"
+    "S026": "Room B6-218",
+    "S023": "Hành lang · khu in ấn/sao chép (B6-214, chung không gian)"
   },
   "mattertags": [],
   "pano_yaw_offset_deg": 90,
@@ -197,5 +198,18 @@
         20
       ]
     ]
+  },
+  "badge": "B6",
+  "texture_cache_max": 6,
+  "walk_start": 1,
+  "area_labels": {
+    "enable": true,
+    "layer": "A-AREA-IDEN",
+    "max_distance_m": 25.0,
+    "overrides": {
+      "S024": "B6-218",
+      "S023": "B6-2.CR7"
+    },
+    "_comment": "overrides: force a station to an area code when the automatic choice is wrong"
   }
 }

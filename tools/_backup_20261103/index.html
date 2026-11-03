@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VGU Building B6 - 2nd Floor</title>
+  <meta name="description" content="Matterport-Standard 3D Showcase: Smooth Continuous Walkthrough, Oriented 360° Photospheres, and Dollhouse View">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.3/tween.umd.js"></script>
+
+  <style>
+    :root {
+      --mp-bg: #0b0d13;
+      --mp-surface: rgba(18, 22, 32, 0.88);
+      --mp-surface-hover: rgba(28, 34, 48, 0.95);
+      --mp-border: rgba(255, 255, 255, 0.12);
+      --mp-border-active: rgba(0, 210, 255, 0.6);
+      --mp-cyan: #00d2ff;
+      --mp-cyan-glow: rgba(0, 210, 255, 0.5);
+      --mp-blue: #0088ff;
+      --mp-text-main: #f8fafc;
+      --mp-text-muted: #94a3b8;
+      --mp-radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--mp-bg);
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--mp-text-main);
+    }
+
+    /* 3D Viewport Canvas */
+    #canvas3d {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* Loading Screen */
+    #loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0b0d13;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #loader-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .mp-spinner {
+      width: 52px;
+      height: 52px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--mp-cyan);
+      border-radius: 50%;
+      animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .loader-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    .loader-sub {
+      font-size: 13px;
+      color: var(--mp-text-muted);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Top Left Space Info Header */
+    .top-left-header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      background: var(--mp-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--mp-border);
+      border-radius: var(--mp-radius);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .mp-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #00d2ff, #0066ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+      box-shadow: 0 0 14px var(--mp-cyan-glow);
+    }
+
+    .space-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .space-sub {
+      font-size: 12px;
+      color: var(--mp-text-muted);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* Top Right Controls & Links */
+    .top-right-bar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mp-btn {
+      background: var(--mp-surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--mp-border);
+      border-radius: var(--mp-radius);
+      color: var(--mp-text-main);
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .mp-btn:hover {
+      background: var(--mp-surface-hover);
+      border-color: var(--mp-border-active);
+      transform: translateY(-1px);
+    }
+
+    .mp-btn.active {
+      background: rgba(0, 210, 255, 0.18);
+      border-color: var(--mp-cyan);
+      color: var(--mp-cyan);
+      box-shadow: 0 0 12px var(--mp-cyan-glow);
+    }
+
+    /* Floating In-Image Forward/Backward Walk Navigation HUD */
+    .walk-nav-hud {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .walk-btn {
+      pointer-events: auto;
+      background: rgba(14, 18, 28, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid var(--mp-cyan);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 28px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 210, 255, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .walk-btn:hover {
+      background: rgba(0, 210, 255, 0.25);
+      border-color: #fff;
+      color: #fff;
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 0 24px var(--mp-cyan-glow);
+    }
+
+    .walk-btn:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+      border-color: var(--mp-border);
+      box-shadow: none;
+    }
+
+    .walk-hotkey {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--mp-cyan);
+    }
+
+    /* Dollhouse 3D Layer Switcher */
+    .dollhouse-layer-dock {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      gap: 6px;
+      background: var(--mp-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--mp-border);
+      border-radius: 24px;
+      padding: 4px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .layer-pill {
+      background: transparent;
+      border: none;
+      color: var(--mp-text-muted);
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .layer-pill:hover {
+      color: #fff;
+    }
+
+    .layer-pill.active {
+      background: var(--mp-cyan);
+      color: #0b0d13;
+      box-shadow: 0 0 12px var(--mp-cyan-glow);
+    }
+
+    /* Bottom Matterport Control Dock */
+    .mp-bottom-dock {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--mp-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--mp-border);
+      border-radius: 30px;
+      padding: 6px 14px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+    }
+
+    .view-mode-bar {
+      display: flex;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 3px;
+    }
+
+    .mode-pill {
+      background: transparent;
+      border: none;
+      color: var(--mp-text-muted);
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mode-pill.active {
+      background: #fff;
+      color: #0b0d13;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .tour-play-btn {
+      background: linear-gradient(135deg, #00d2ff, #0077ff);
+      border: none;
+      color: #fff;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 14px var(--mp-cyan-glow);
+      transition: all 0.2s ease;
+    }
+
+    .tour-play-btn:hover {
+      transform: scale(1.04);
+      filter: brightness(1.1);
+    }
+
+    .tour-play-btn.playing {
+      background: #ef4444;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.5);
+    }
+
+    .reel-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--mp-border);
+      color: var(--mp-text-main);
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .reel-toggle-btn:hover {
+      border-color: var(--mp-cyan);
+      color: var(--mp-cyan);
+    }
+
+    /* Highlight Reel Drawer */
+    .highlight-reel {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      z-index: 999;
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(14, 18, 26, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--mp-border);
+      border-radius: 12px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+      max-width: 90vw;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .highlight-reel.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .highlight-reel::-webkit-scrollbar {
+      height: 4px;
+    }
+    .highlight-reel::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .reel-card {
+      flex: 0 0 125px;
+      cursor: pointer;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      background: #1a202c;
+    }
+
+    .reel-card img {
+      width: 100%;
+      height: 72px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s;
+    }
+
+    .reel-card:hover img {
+      transform: scale(1.08);
+    }
+
+    .reel-card.active {
+      border-color: var(--mp-cyan);
+      box-shadow: 0 0 14px var(--mp-cyan-glow);
+    }
+
+    .reel-card-title {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      padding: 16px 6px 4px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      color: #fff;
+    }
+
+    .reel-badge-lidar {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.7);
+      color: #fbbf24;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Radar / Mini-Map (Bottom-Left) */
+    .radar-container {
+      position: absolute;
+      bottom: 24px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--mp-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--mp-border);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .radar-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--mp-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #radarCanvas {
+      width: 160px;
+      height: 120px;
+      background: rgba(5, 7, 12, 0.8);
+      border-radius: 8px;
+      cursor: crosshair;
+    }
+
+    /* Interactive Hover Focus Card */
+    #focus-hover-card {
+      position: absolute;
+      pointer-events: none;
+      z-index: 3000;
+      background: rgba(15, 20, 30, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid var(--mp-cyan);
+      border-radius: 10px;
+      padding: 12px;
+      width: 250px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 210, 255, 0.3);
+      display: none;
+      transform: translate(-50%, -105%);
+      transition: opacity 0.15s ease;
+    }
+
+    #focus-hover-thumb {
+      width: 100%;
+      height: 115px;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .focus-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .focus-card-desc {
+      font-size: 11px;
+      color: var(--mp-text-muted);
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+
+    .focus-card-coords {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--mp-cyan);
+      margin-top: 6px;
+      background: rgba(0, 210, 255, 0.1);
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+
+    /* Mattertag 3D Annotation Card */
+    #mattertag-popup {
+      position: absolute;
+      z-index: 2500;
+      width: 270px;
+      background: var(--mp-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--mp-border-active);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px var(--mp-cyan-glow);
+      display: none;
+    }
+
+    .tag-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tag-desc {
+      font-size: 12px;
+      color: var(--mp-text-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .tag-meta {
+      font-size: 10px;
+      color: var(--mp-cyan);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 8px;
+    }
+
+    /* Non-blocking HUD Toast */
+    #mp-toast {
+      position: absolute;
+      top: 74px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--mp-cyan);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #mp-toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 3D Canvas -->
+  <canvas id="canvas3d"></canvas>
+
+  <!-- Loading Screen -->
+  <div id="loader-overlay">
+    <div class="mp-spinner"></div>
+    <div class="loader-title">VGU Building B6 - 2nd Floor</div>
+    <div id="loader-sub" class="loader-sub">Initializing Matterport environment...</div>
+  </div>
+
+  <!-- Top Left: Space Info Header -->
+  <div class="top-left-header">
+    <div class="mp-badge">M</div>
+    <div>
+      <div class="space-title">VGU Building B6 - 2nd Floor &bull; 360° Walkthrough (Oct 2026)</div>
+      <div class="space-sub">
+        <span class="status-dot"></span>
+        <span id="current-station-title">Station 01: South Approach Ramp</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Right Actions -->
+  <div class="top-right-bar">
+    <button class="mp-btn" id="btn-quality" title="Toggle Texture Resolution: Fast Web vs Ultra HD 4K">
+      <span id="quality-icon">💎</span> <span id="quality-text">4K Ultra</span>
+    </button>
+    
+    
+    <button class="mp-btn" id="btn-fullscreen" title="Toggle Fullscreen">⛶ Fullscreen</button>
+  </div>
+
+  <!-- In-Image Forward/Backward Walk Navigation Buttons (Inside Tour Mode) -->
+  <div class="walk-nav-hud" id="walk-nav-hud">
+    <button class="walk-btn" id="btn-walk-prev" title="Step backward to the next station (or press S / Left Arrow)">
+      <span>◀</span> <span id="walk-prev-label">Previous Station</span>
+      <span class="walk-hotkey">S</span>
+    </button>
+    <button class="walk-btn" id="btn-walk-next" title="Step forward to the next station (or press W / Right Arrow)">
+      <span id="walk-next-label">Next Station</span> <span>▶</span>
+      <span class="walk-hotkey">W</span>
+    </button>
+  </div>
+
+  <!-- Dollhouse 3D Layer Switcher (Colored Surface Mesh vs Point Cloud) -->
+  <div class="dollhouse-layer-dock" id="dollhouse-layer-dock" style="display:none;">
+    <button class="layer-pill active" id="btn-layer-mesh" data-layer="mesh">🎨 3D Colored Mesh</button>
+    <button class="layer-pill" id="btn-layer-points" data-layer="points">⚡ Laser Point Cloud</button>
+  </div>
+
+  <!-- Bottom Matterport Control Dock -->
+  <div class="mp-bottom-dock">
+    <!-- View Modes: Inside Tour, Dollhouse, Floor Plan -->
+    <div class="view-mode-bar">
+      <button class="mode-pill active" id="btn-mode-inside" data-mode="inside">
+        🚶 Inside Tour
+      </button>
+      <button class="mode-pill" id="btn-mode-dollhouse" data-mode="dollhouse">
+        🗺️ 3D Plan
+      </button>
+      <button class="mode-pill" id="btn-mode-floorplan" data-mode="floorplan">
+        🧭 Floor Plan
+      </button>
+    </div>
+
+    <!-- Tour Autoplay -->
+    <button class="tour-play-btn" id="btn-tour-play">
+      <span id="play-icon">▶</span>
+      <span id="play-text">Play Tour</span>
+    </button>
+
+    <!-- Highlights Reel Drawer Toggle -->
+    <button class="reel-toggle-btn" id="btn-reel-toggle" title="Show/Hide Station Highlights">
+      🎞️ Stations (<span id="station-count-badge">11</span>)
+    </button>
+  </div>
+
+  <!-- Radar / Mini-Map (Bottom-Left) -->
+  <div class="radar-container" id="radar-box">
+    <div class="radar-header">
+      <span>Focus Map</span>
+      <span id="radar-active-st" style="color:var(--mp-cyan); font-family:'JetBrains Mono';">S01</span>
+    </div>
+    <canvas id="radarCanvas" width="160" height="120"></canvas>
+  </div>
+
+  <!-- Station Highlights Reel (Drawer) -->
+  <div class="highlight-reel" id="highlight-reel">
+    <!-- Dynamically populated station cards -->
+  </div>
+
+  <!-- Interactive Hover Card for Focus Points -->
+  <div id="focus-hover-card">
+    <img id="focus-hover-thumb" src="" alt="Panorama Preview">
+    <div class="focus-card-title" id="focus-hover-title">Station 01</div>
+    <div class="focus-card-desc" id="focus-hover-desc">South Approach Ramp</div>
+    <div class="focus-card-coords" id="focus-hover-coords">X: -79.64 | Y: 131.62 | Z: -0.05m</div>
+  </div>
+
+  <!-- Mattertag Popup Card -->
+  <div id="mattertag-popup">
+    <div class="tag-title">
+      <span id="tag-title-text">Anchor Pylon</span>
+      <button style="background:none; border:none; color:#94a3b8; cursor:pointer;" id="tag-close-btn">✕</button>
+    </div>
+    <div class="tag-desc" id="tag-desc-text">Engineering description here...</div>
+    <div class="tag-meta" id="tag-meta-text">Elevation: +45.2m</div>
+  </div>
+
+  <!-- Non-blocking HUD Toast -->
+  <div id="mp-toast">
+    <span style="color:var(--mp-cyan);">⚡</span>
+    <span id="toast-text">Swooping to Station...</span>
+  </div>
+
+  <!-- Three.js App Engine -->
+  <script type="module">
+    import * as THREE from 'https://esm.sh/three@0.170.0';
+    import { OrbitControls } from 'https://esm.sh/three@0.170.0/examples/jsm/controls/OrbitControls.js';
+    import { PLYLoader } from 'https://esm.sh/three@0.170.0/examples/jsm/loaders/PLYLoader.js';
+    import { GLTFLoader } from 'https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
+
+    // Application State
+    const state = {
+      mode: 'inside', // 'inside' | 'dollhouse' | 'floorplan'
+      quality: 'hd',  // 'hd' (4K) | 'web' (2.5K)
+      dollhouseLayer: 'mesh', // 'mesh' | 'points'
+      currentStationIndex: 0,
+      stations: [],
+      dollhouseMesh: null,
+      dollhousePointCloud: null,
+      photosphereMesh: null,
+      panoVSpan: Math.PI * 2 * 1048 / 2560, // updated automatically from the first loaded panorama
+      nextPhotosphereMesh: null,
+      inImagePucksGroup: new THREE.Group(),
+      dollhouseBeaconsGroup: new THREE.Group(),
+      mattertagsGroup: new THREE.Group(),
+      isTransitioning: false,
+      isPlayingTour: false,
+      tourTimer: null,
+      textureCache: new Map(),
+      lookDir: new THREE.Vector3(1, 0, 0)
+    };
+
+    // Canvas & Three.js Core
+    const canvas = document.getElementById('canvas3d');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b0d13);
+
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.up.set(0, 0, 1); // Survey Z is vertical UP
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.rotateSpeed = -0.35; // Natural panoramic drag
+    controls.minDistance = 0.001;
+    controls.maxDistance = 0.05; // Coincident pivot for zero-snap panoramic viewing
+
+    // Raycaster for in-image buttons & mattertags
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight1.position.set(60, 120, 100);
+    scene.add(dirLight1);
+
+    // Add interactive groups to scene
+    scene.add(state.inImagePucksGroup);
+    scene.add(state.dollhouseBeaconsGroup);
+    scene.add(state.mattertagsGroup);
+    state.dollhouseBeaconsGroup.visible = false;
+    state.mattertagsGroup.visible = false;
+
+    // Toast HUD Helper
+    function showToast(msg, duration = 2500) {
+      const toast = document.getElementById('mp-toast');
+      document.getElementById('toast-text').innerText = msg;
+      toast.classList.add('visible');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove('visible'), duration);
+    }
+
+    // Initialize Matterport Viewer
+    async function init() {
+      try {
+        // 1. Fetch Scan Stations & Focus Points
+        document.getElementById('loader-sub').innerText = 'Loading station survey coordinates & focus points...';
+        const res = await fetch('scan_stations.json');
+        state.stations = await res.json();
+        document.getElementById('station-count-badge').innerText = state.stations.length;
+
+        // 2. Setup Dual Photosphere Meshes for Smooth Cross-Fading
+        // ========================================================
+        // CRITICAL 180° ROTATION FIX:
+        // In ASTM E57, equirectangular panoramas have u=0.5 (center) facing Forward (local +X).
+        // Standard Three.js SphereGeometry puts u=0 at +X, causing the panorama to be inverted by 180°.
+        // We apply sphereGeo.rotateZ(Math.PI) to orient the panorama 100% correctly with survey coordinates!
+        // ========================================================
+        // PANORAMA VERTICAL COVERAGE FIX: E57 panoramas are not 2:1 (e.g. 2560x1048). They span from the
+        // zenith (+90deg) down to ~-57deg; the area under the tripod is not imaged. Mapping such an image over
+        // the full 180deg stretched it and pushed the photo downwards relative to the 3D floor markers.
+        // The sphere now covers only the real vertical span (thetaLength = PI * 2 * h / w), auto-set from the texture.
+        const sphereGeo = buildPanoSphereGeo(state.panoVSpan);
+
+        const sphereMat = new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 1.0,
+          depthWrite: false
+        });
+        state.photosphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+        state.photosphereMesh.renderOrder = -100; // Always render as 360 background first!
+        scene.add(state.photosphereMesh);
+
+        const nextSphereMat = new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 0.0,
+          depthWrite: false
+        });
+        state.nextPhotosphereMesh = new THREE.Mesh(sphereGeo, nextSphereMat);
+        state.nextPhotosphereMesh.renderOrder = -100; // Always render as 360 background first!
+        scene.add(state.nextPhotosphereMesh);
+
+        // 3. Build UI Highlight Reel
+        buildHighlightReel();
+
+        // 4. Create In-Image Navigation Buttons & 3D Beacons
+        build3DFocusElements();
+
+        // 5. Create Mattertags
+        buildMattertags();
+
+        // 6. Load Clean Crisp Point Cloud & Colored Surface Mesh for Dollhouse View
+        loadDollhouseModels();
+
+        // 7. Load Initial Station (Station 01)
+        await setStationImmediate(0);
+
+        // 8. Update initial mode visibility (strictly hides dollhouse beacons & mattertags in inside tour)
+        updateVisibility();
+
+        // 9. Initialize Radar
+        drawRadar();
+
+        // Hide Loader
+        document.getElementById('loader-overlay').classList.add('hidden');
+
+      } catch (err) {
+        console.error('Initialization error:', err);
+        document.getElementById('loader-sub').innerText = 'Error initializing viewer: ' + err.message;
+      }
+    }
+
+    // Load Dollhouse 3D Models (Colored Surface Mesh & Point Cloud)
+    function loadDollhouseModels() {
+      // 2D floor plan (DXF render) laid on the floor plane, shown in Dollhouse / Floor Plan modes
+      fetch('floorplan.json').then(r => r.json()).then(fp => {
+        new THREE.TextureLoader().load(fp.image, (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          const w = fp.maxX - fp.minX, h = fp.maxY - fp.minY;
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+                                   new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+          m.position.set((fp.minX + fp.maxX) / 2, (fp.minY + fp.maxY) / 2, fp.z || 0);
+          m.renderOrder = -50;
+          state.dollhouseMesh = m;
+          m.visible = (state.mode === 'dollhouse' || state.mode === 'floorplan');
+          scene.add(m);
+        });
+      }).catch(() => console.log('No floor plan found'));
+    }
+    function _unusedOldLoader() {
+      // 1. Load Solid Colored Surface Mesh (True LiDAR RGB Colors)
+      const gltfLoader = new GLTFLoader();
+      gltfLoader.load('bridge_bpa_colored.glb', (gltf) => {
+        state.dollhouseMesh = gltf.scene;
+        state.dollhouseMesh.traverse((child) => {
+          if (child.isMesh) {
+            child.material.side = THREE.DoubleSide;
+            child.material.roughness = 0.55;
+            child.material.metalness = 0.05;
+          }
+        });
+        state.dollhouseMesh.visible = (state.mode === 'dollhouse' || state.mode === 'floorplan') && (state.dollhouseLayer === 'mesh');
+        scene.add(state.dollhouseMesh);
+      }, undefined, () => {
+        console.log('No 3D surface mesh found (pure 360 walkthrough mode)');
+      });
+
+      // 2. Load Laser Point Cloud (LiDAR scan points)
+      const plyLoader = new PLYLoader();
+      plyLoader.load('bridge_pointcloud_web.ply', (geom) => {
+        const mat = new THREE.PointsMaterial({
+          size: 2.2,
+          vertexColors: true,
+          sizeAttenuation: false,
+          transparent: true,
+          opacity: 0.95
+        });
+        state.dollhousePointCloud = new THREE.Points(geom, mat);
+        state.dollhousePointCloud.visible = (state.mode === 'dollhouse' || state.mode === 'floorplan') && (state.dollhouseLayer === 'points');
+        scene.add(state.dollhousePointCloud);
+      }, undefined, () => {
+        console.log('No 3D point cloud found (pure 360 walkthrough mode)');
+      });
+    }
+
+    // Update Visibility between Inside Tour and Dollhouse
+    function updateVisibility() {
+      const isDollhouse = (state.mode === 'dollhouse' || state.mode === 'floorplan');
+      if (state.dollhouseMesh) state.dollhouseMesh.visible = isDollhouse;
+      if (state.dollhousePointCloud) state.dollhousePointCloud.visible = isDollhouse && (state.dollhouseLayer === 'points');
+      state.dollhouseBeaconsGroup.visible = isDollhouse;
+      state.mattertagsGroup.visible = isDollhouse;
+
+      const isInside = (state.mode === 'inside');
+      state.inImagePucksGroup.visible = isInside;
+      state.photosphereMesh.visible = isInside;
+      document.getElementById('walk-nav-hud').style.display = isInside ? 'flex' : 'none';
+
+      const dollhouseLayerDock = document.getElementById('dollhouse-layer-dock');
+      if (dollhouseLayerDock) dollhouseLayerDock.style.display = 'none';
+    }
+
+    // Set Station Immediately (Initial Load or Mode Exit)
+    async function setStationImmediate(index) {
+      state.currentStationIndex = index;
+      const st = state.stations[index];
+      if (!st) return;
+
+      // Survey coordinates Z is already the scanner mirror eye-level height!
+      const p = new THREE.Vector3(st.surveyPosition.x, st.surveyPosition.y, st.surveyPosition.z);
+      state.photosphereMesh.position.copy(p);
+
+      // Apply scanner's survey rotation quaternion
+      if (st.rotation && st.rotation.length === 4) {
+        state.photosphereMesh.quaternion.set(st.rotation[1], st.rotation[2], st.rotation[3], st.rotation[0]);
+      }
+
+      // Default look along bridge deck aiming directly at next reachable station waypoint
+      let fwdDir;
+      let nextReachable = null;
+      for (let i = index + 1; i < state.stations.length; i++) {
+        if (state.stations[i].hasPanorama) { nextReachable = state.stations[i]; break; }
+      }
+      if (nextReachable) {
+        const pNext = nextReachable.surveyPosition;
+        const zNextFloor = (nextReachable.groundZ !== undefined) ? nextReachable.groundZ : (pNext.z - 1.62);
+        // Look directly towards the next station floor waypoint and badge (~1.0m above pavement)
+        const targetPt = new THREE.Vector3(pNext.x, pNext.y, zNextFloor + 1.0);
+        fwdDir = new THREE.Vector3().subVectors(targetPt, p).normalize();
+      } else {
+        fwdDir = new THREE.Vector3(1, 0.5, -0.1).normalize();
+      }
+      state.lookDir.copy(fwdDir);
+
+      const photoUrl = (state.quality === 'hd' && st.photoHd) ? st.photoHd : st.photo;
+      const tex = await getOrLoadTexture(photoUrl);
+      state.photosphereMesh.material.map = tex;
+      state.photosphereMesh.material.opacity = 1.0;
+      state.photosphereMesh.material.needsUpdate = true;
+
+      if (state.mode === 'inside') {
+        camera.position.copy(p);
+        controls.target.copy(p).addScaledVector(fwdDir, 0.01);
+        controls.update();
+      }
+
+      updateUIStationInfo();
+      updateInImagePucks();
+      drawRadar();
+
+      // Pre-cache neighboring stations in background for instant swoop
+      const neighbors = [index - 1, index + 1, index - 2, index + 2];
+      for (const nIdx of neighbors) {
+        if (nIdx >= 0 && nIdx < state.stations.length && state.stations[nIdx].hasPanorama) {
+          const nextSt = state.stations[nIdx];
+          const url = (state.quality === 'hd' && nextSt.photoHd) ? nextSt.photoHd : nextSt.photo;
+          getOrLoadTexture(url);
+        }
+      }
+    }
+
+    // Smooth First-Person Zoom & Swoop Navigation Between Stations
+    async function navigateToStation(nextIndex) {
+      if (state.isTransitioning) return;
+      if (nextIndex < 0 || nextIndex >= state.stations.length) return;
+      if (nextIndex === state.currentStationIndex) return;
+
+      const curSt = state.stations[state.currentStationIndex];
+      const nextSt = state.stations[nextIndex];
+
+      state.isTransitioning = true;
+      showToast(`Walking to ${nextSt.name}...`);
+
+      // Hide pucks during flight to avoid visual clutter
+      state.inImagePucksGroup.visible = false;
+
+      // Eye-level survey coordinates (true scanner heights)
+      const pStart = new THREE.Vector3(curSt.surveyPosition.x, curSt.surveyPosition.y, curSt.surveyPosition.z);
+      const pEnd = new THREE.Vector3(nextSt.surveyPosition.x, nextSt.surveyPosition.y, nextSt.surveyPosition.z);
+
+      // Travel vector forward
+      const travelDir = new THREE.Vector3().subVectors(pEnd, pStart);
+      const dist = travelDir.length();
+      if (dist > 0.001) travelDir.normalize();
+      else travelDir.set(1, 0, 0);
+
+      // Current camera look vector
+      const curCamDir = new THREE.Vector3();
+      camera.getWorldDirection(curCamDir);
+
+      // Prepare destination sphere
+      state.nextPhotosphereMesh.position.copy(pEnd);
+      if (nextSt.rotation && nextSt.rotation.length === 4) {
+        state.nextPhotosphereMesh.quaternion.set(nextSt.rotation[1], nextSt.rotation[2], nextSt.rotation[3], nextSt.rotation[0]);
+      }
+
+      // Pre-load destination texture
+      const photoUrl = (state.quality === 'hd' && nextSt.photoHd) ? nextSt.photoHd : nextSt.photo;
+      const nextTex = await getOrLoadTexture(photoUrl);
+      state.nextPhotosphereMesh.material.map = nextTex;
+      state.nextPhotosphereMesh.material.opacity = 0.0;
+      state.nextPhotosphereMesh.material.needsUpdate = true;
+      state.nextPhotosphereMesh.visible = true;
+
+      // Reset scales to positive uniform 1.0 (prevents horizontal flipping)
+      state.photosphereMesh.scale.set(1, 1, 1);
+      state.nextPhotosphereMesh.scale.set(1, 1, 1);
+
+      // Realistic Walkthrough Zoom Flight (~950ms duration)
+      // Camera rushes forward, FOV warps dynamically, starting sphere zooms forward for visceral surge
+      const initialFov = camera.fov;
+      new TWEEN.Tween({ t: 0 })
+        .to({ t: 1 }, 950)
+        .easing(TWEEN.Easing.Cubic.InOut)
+        .onUpdate(({ t }) => {
+          // Camera glides smoothly forward into destination
+          camera.position.lerpVectors(pStart, pEnd, t);
+
+          // Optical Dolly-Zoom FOV warp: compresses during rush, then opens up smoothly
+          const fovCompression = Math.sin(t * Math.PI) * 7.5;
+          camera.fov = Math.max(35, initialFov - fovCompression);
+          camera.updateProjectionMatrix();
+
+          // Physical forward surge: starting sphere expands as user rushes forward
+          const rushScale = 1.0 + t * 0.22;
+          state.photosphereMesh.scale.set(rushScale, rushScale, rushScale);
+
+          // Look direction turns smoothly toward travel destination
+          const currentDir = new THREE.Vector3().lerpVectors(curCamDir, travelDir, Math.min(1.0, t * 1.5)).normalize();
+          controls.target.copy(camera.position).addScaledVector(currentDir, 0.01);
+
+          // Smooth Hermite blend between spheres
+          const fadeProgress = Math.max(0, Math.min(1, (t - 0.2) / 0.65));
+          const fadeSmooth = 0.5 - 0.5 * Math.cos(fadeProgress * Math.PI);
+          state.photosphereMesh.material.opacity = 1.0 - fadeSmooth;
+          state.nextPhotosphereMesh.material.opacity = fadeSmooth;
+        })
+        .onComplete(() => {
+          camera.fov = initialFov;
+          camera.updateProjectionMatrix();
+          state.photosphereMesh.scale.set(1, 1, 1);
+          state.nextPhotosphereMesh.scale.set(1, 1, 1);
+
+          // Commit arrival at next station
+          state.photosphereMesh.position.copy(pEnd);
+          state.photosphereMesh.quaternion.copy(state.nextPhotosphereMesh.quaternion);
+          state.photosphereMesh.material.map = nextTex;
+          state.photosphereMesh.material.opacity = 1.0;
+          state.photosphereMesh.material.needsUpdate = true;
+
+          state.nextPhotosphereMesh.visible = false;
+          state.nextPhotosphereMesh.material.opacity = 0.0;
+
+          // Camera continues looking forward along travel direction
+          camera.position.copy(pEnd);
+          controls.target.copy(pEnd).addScaledVector(travelDir, 0.01);
+          controls.update();
+
+          state.currentStationIndex = nextIndex;
+          state.lookDir.copy(travelDir);
+          state.isTransitioning = false;
+
+          updateUIStationInfo();
+          updateInImagePucks();
+          state.inImagePucksGroup.visible = (state.mode === 'inside');
+          state.dollhouseBeaconsGroup.visible = (state.mode !== 'inside');
+          state.mattertagsGroup.visible = (state.mode !== 'inside');
+          drawRadar();
+        })
+        .start();
+    }
+
+    // Build In-Image Navigation Buttons & 3D Beacons
+    function build3DFocusElements() {
+      while (state.inImagePucksGroup.children.length > 0) {
+        state.inImagePucksGroup.remove(state.inImagePucksGroup.children[0]);
+      }
+      while (state.dollhouseBeaconsGroup.children.length > 0) {
+        state.dollhouseBeaconsGroup.remove(state.dollhouseBeaconsGroup.children[0]);
+      }
+
+      const ringGeo = new THREE.RingGeometry(0.320, 0.460, 48);
+      const pulseGeo = new THREE.RingGeometry(0.470, 0.640, 48);
+      const decalGeo = new THREE.CircleGeometry(0.310, 48);
+      const hitGeo = new THREE.CylinderGeometry(0.840, 0.840, 0.6, 16);
+      hitGeo.rotateX(Math.PI / 2); // Orient cylinder height vertically (along Z axis)
+
+      const orbGeo = new THREE.SphereGeometry(0.45, 16, 16);
+
+      state.stations.forEach((st, idx) => {
+        const p = st.surveyPosition;
+        // Deck floor level: exactly on the bridge pavement surface directly under the scanner mirror
+        const zFloor = (st.groundZ !== undefined) ? st.groundZ : (p.z - 1.62);
+
+        // --- 1. In-Image Clickable Navigation Portal (Flat on Bridge Deck Floor) ---
+        if (st.hasPanorama) {
+          const navPuck = new THREE.Group();
+          // Sit precisely on the pavement surface (lift +0.02m to prevent z-fighting with bridge geometry)
+          navPuck.position.set(p.x, p.y, zFloor + 0.02);
+          navPuck.renderOrder = 100;
+
+          // Deck Floor Disc Group (Flat on bridge deck)
+          const floorGroup = new THREE.Group();
+          floorGroup.renderOrder = 100;
+
+          // Outer glowing ring
+          const ringMat = new THREE.MeshBasicMaterial({
+            color: 0x00f0ff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.95,
+            depthTest: false,
+            depthWrite: false
+          });
+          const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+          ringMesh.position.set(0, 0, 0.01);
+          ringMesh.renderOrder = 101;
+
+          // Flat Floor Decal Disc (Lying completely flat on the pavement surface)
+          const decalMat = new THREE.MeshBasicMaterial({
+            map: createFloorDecalTexture(st),
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 1.0,
+            depthTest: false,
+            depthWrite: false
+          });
+          const decalMesh = new THREE.Mesh(decalGeo, decalMat);
+          decalMesh.position.set(0, 0, 0.02);
+          decalMesh.renderOrder = 102;
+          decalMesh.userData = { isNavPuck: true, stationIndex: idx, stationData: st };
+
+          // Expanding radar pulse ring on deck surface
+          const pulseMat = new THREE.MeshBasicMaterial({
+            color: 0x00f0ff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.7,
+            depthTest: false,
+            depthWrite: false
+          });
+          const pulseRing = new THREE.Mesh(pulseGeo, pulseMat);
+          pulseRing.position.set(0, 0, 0.005);
+          pulseRing.renderOrder = 100;
+
+          floorGroup.add(ringMesh);
+          floorGroup.add(decalMesh);
+          floorGroup.add(pulseRing);
+          navPuck.add(floorGroup);
+
+          // Floating 3D Waypoint Badge above the floor disc (ensures instant visibility even from far away)
+          const waypointSprite = createWalkWaypointSprite(`S${String(st.id).padStart(2, '0')}`);
+          waypointSprite.position.set(0, 0, 0.12);
+          waypointSprite.renderOrder = 105;
+          waypointSprite.userData = { isNavPuck: true, stationIndex: idx, stationData: st };
+          navPuck.add(waypointSprite);
+
+          // Wide Invisible Hit-Cylinder around the floor puck for effortless clicking from ANY angle
+          const hitMat = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0.0,
+            depthWrite: false
+          });
+          const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+          hitMesh.position.set(0, 0, 0.3);
+          hitMesh.userData = {
+            isNavPuck: true,
+            stationIndex: idx,
+            stationData: st
+          };
+          navPuck.add(hitMesh);
+
+          navPuck.userData = {
+            isNavPuck: true,
+            stationIndex: idx,
+            stationData: st,
+            floorGroup: floorGroup,
+            ringMesh: ringMesh,
+            decalMesh: decalMesh,
+            pulseRing: pulseRing,
+            pulseRingMat: pulseMat,
+            waypointSprite: waypointSprite,
+            hitMesh: hitMesh
+          };
+          state.inImagePucksGroup.add(navPuck);
+        }
+
+        // --- 2. Dollhouse Holographic 3D Beacon (Only shown in Dollhouse Mode) ---
+        const beacon = new THREE.Group();
+        beacon.position.set(p.x, p.y, zFloor);
+
+        const stemGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.60, 8);
+        stemGeo.rotateX(Math.PI / 2);
+        const stemMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff, transparent: true, opacity: 0.6 });
+        const stem = new THREE.Mesh(stemGeo, stemMat);
+        stem.position.set(0, 0, 0.80);
+
+        const orbMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff, transparent: true, opacity: 0.95 });
+        const orb = new THREE.Mesh(orbGeo, orbMat);
+        orb.position.set(0, 0, 1.60);
+
+        const dollhouseBadge = createDollhouseBadgeSprite(`S${String(st.id).padStart(2, '0')}`);
+        dollhouseBadge.position.set(0, 0, 2.3);
+
+        beacon.add(stem);
+        beacon.add(orb);
+        beacon.add(dollhouseBadge);
+        beacon.userData = {
+          isBeacon: true,
+          stationIndex: idx,
+          stationData: st
+        };
+        state.dollhouseBeaconsGroup.add(beacon);
+      });
+
+      updateInImagePucks();
+    }
+
+    // Create Flat Floor Decal Texture (Embedded directly into the bridge deck pavement)
+    function createFloorDecalTexture(st) {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+
+      // Outer glowing neon border
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 24;
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 18;
+      ctx.beginPath();
+      ctx.arc(256, 256, 236, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Vibrant circular background
+      ctx.shadowBlur = 0;
+      const grad = ctx.createRadialGradient(256, 256, 60, 256, 256, 236);
+      grad.addColorStop(0, 'rgba(0, 195, 255, 0.50)');
+      grad.addColorStop(0.65, 'rgba(8, 25, 50, 0.92)');
+      grad.addColorStop(1, 'rgba(4, 12, 25, 0.98)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(256, 256, 226, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner accent ring
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.65)';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(256, 256, 180, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Big forward walk arrow ▲
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 96px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('▲', 256, 155);
+
+      // Station ID
+      ctx.fillStyle = '#00f0ff';
+      ctx.font = 'bold 64px "Inter", sans-serif';
+      ctx.fillText(`S${String(st.id).padStart(2, '0')}`, 256, 270);
+
+      // Action label
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 28px "JetBrains Mono", monospace';
+      ctx.fillText('BƯỚC TỚI • WALK', 256, 350);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    // Helper: Create Floating 3D Waypoint Badge Sprite for Inside Tour
+    function createWalkWaypointSprite(text) {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 96;
+      const ctx = c.getContext('2d');
+
+      // Rounded pill badge with glowing cyan border
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = 'rgba(8, 20, 36, 0.94)';
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.roundRect(8, 8, 240, 80, 40);
+      ctx.fill();
+      ctx.stroke();
+
+      // Text with arrow
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#00f0ff';
+      ctx.font = 'bold 30px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('▲ ' + text, 128, 48);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(0.640, 0.240, 1);
+      return sprite;
+    }
+
+    // Helper: Create Floating 3D Badge Sprite for Dollhouse
+    function createDollhouseBadgeSprite(text) {
+      const c = document.createElement('canvas');
+      c.width = 140;
+      c.height = 64;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = 'rgba(15, 20, 30, 0.90)';
+      ctx.strokeStyle = '#00d2ff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(6, 6, 128, 52, 26);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 70, 32);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(2.0, 0.9, 1);
+      return sprite;
+    }
+
+    // Determine reachable adjacent station indices for the current frame
+    function getReachableStationIndices(curIdx) {
+      const cur = state.stations[curIdx]; if (!cur) return [];
+      const out = [];
+      const add = (i) => { if (i >= 0 && i !== curIdx && state.stations[i] && state.stations[i].hasPanorama && !out.includes(i)) out.push(i); };
+      add(curIdx + 1); add(curIdx - 1);                       // walk order first (keeps W / S and default view)
+      if (Array.isArray(cur.visible)) {
+        cur.visible.forEach(id => add(state.stations.findIndex(s => s.id === id)));
+        return out.filter(i => cur.visible.includes(state.stations[i].id) || Math.abs(i - curIdx) === 1);
+      }
+      return out;
+    }
+
+    function updateInImagePucks() {
+      const curIdx = state.currentStationIndex;
+      const curPos = state.stations[curIdx]?.surveyPosition;
+      if (!curPos) return;
+
+      const reachable = getReachableStationIndices(curIdx);
+
+      state.inImagePucksGroup.children.forEach((puck) => {
+        const idx = puck.userData.stationIndex;
+        const st = state.stations[idx];
+
+        // CRITICAL USER REQUIREMENT:
+        // 1. Strictly NEVER show the station we are standing on (idx === curIdx)!
+        // 2. Only show the adjacent reachable stations for this frame!
+        // 3. Hide all distant stations!
+        if (idx === curIdx || !reachable.includes(idx)) {
+          puck.visible = false;
+          return;
+        }
+
+        const dist = Math.hypot(st.surveyPosition.x - curPos.x, st.surveyPosition.y - curPos.y);
+        if (dist < 0.3) {
+          puck.visible = false;
+          return;
+        }
+
+        puck.visible = true;
+
+        // Orient ground floor disc and chevron arrow along travel path facing user
+        const angle = Math.atan2(st.surveyPosition.y - curPos.y, st.surveyPosition.x - curPos.x);
+        if (puck.userData.floorGroup) {
+          puck.userData.floorGroup.rotation.z = angle - Math.PI / 2;
+        }
+      });
+    }
+
+    // Update UI Header, Reel Cards & HUD Buttons
+    function updateUIStationInfo() {
+      const curIdx = state.currentStationIndex;
+      const st = state.stations[curIdx];
+      if (!st) return;
+
+      document.getElementById('current-station-title').innerHTML = `${st.name} &bull; ${st.title}`;
+      document.getElementById('radar-active-st').innerText = `S${String(st.id).padStart(2, '0')}`;
+
+      // Update Highlight Reel cards
+      document.querySelectorAll('.reel-card').forEach((card, idx) => {
+        card.classList.toggle('active', idx === curIdx);
+      });
+
+      // Find previous and next reachable stations with 360 panorama
+      let prevIdx = -1;
+      for (let i = curIdx - 1; i >= 0; i--) {
+        if (state.stations[i].hasPanorama) { prevIdx = i; break; }
+      }
+      let nextIdx = -1;
+      for (let i = curIdx + 1; i < state.stations.length; i++) {
+        if (state.stations[i].hasPanorama) { nextIdx = i; break; }
+      }
+
+      const prevBtn = document.getElementById('btn-walk-prev');
+      const nextBtn = document.getElementById('btn-walk-next');
+      const prevLbl = document.getElementById('walk-prev-label');
+      const nextLbl = document.getElementById('walk-next-label');
+
+      if (prevIdx !== -1) {
+        prevBtn.disabled = false;
+        prevBtn.dataset.targetIndex = prevIdx;
+        prevLbl.innerText = `S${String(state.stations[prevIdx].id).padStart(2, '0')}`;
+      } else {
+        prevBtn.disabled = true;
+        prevBtn.dataset.targetIndex = '';
+        prevLbl.innerText = 'Start of Walk';
+      }
+
+      if (nextIdx !== -1) {
+        nextBtn.disabled = false;
+        nextBtn.dataset.targetIndex = nextIdx;
+        nextLbl.innerText = `S${String(state.stations[nextIdx].id).padStart(2, '0')}`;
+      } else {
+        nextBtn.disabled = true;
+        nextBtn.dataset.targetIndex = '';
+        nextLbl.innerText = 'End of Walk';
+      }
+    }
+
+    // Photosphere geometry covering only the panorama's real vertical span (top = zenith)
+    function buildPanoSphereGeo(vSpan) {
+      const g = new THREE.SphereGeometry(150, 64, 32, 0, Math.PI * 2, 0, vSpan);
+      g.rotateX(Math.PI / 2); // Align equator with horizontal XY plane when Z is UP
+      g.scale(-1, 1, 1); // Invert sphere to view from inside
+      g.rotateZ(Math.PI); // Rotate 180° around Z: aligns E57 center with Forward (+X)!
+      return g;
+    }
+    function applyPanoAspect(w, h) {
+      if (!w || !h) return;
+      const span = Math.min(Math.PI, Math.PI * 2 * h / w);
+      if (Math.abs(span - state.panoVSpan) < 1e-4) return;
+      state.panoVSpan = span;
+      if (!state.photosphereMesh) return;
+      const old = state.photosphereMesh.geometry;
+      const g = buildPanoSphereGeo(span);
+      state.photosphereMesh.geometry = g;
+      if (state.nextPhotosphereMesh) state.nextPhotosphereMesh.geometry = g;
+      old.dispose();
+    }
+
+    // Texture Loader with Cache
+    const textureLoader = new THREE.TextureLoader();
+    function getOrLoadTexture(url) {
+      return new Promise((resolve) => {
+        if (state.textureCache.has(url)) {
+          resolve(state.textureCache.get(url));
+          return;
+        }
+        textureLoader.load(url, (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          if (tex.image) applyPanoAspect(tex.image.width, tex.image.height);
+          tex.generateMipmaps = true;
+          tex.minFilter = THREE.LinearMipmapLinearFilter;
+          state.textureCache.set(url, tex);
+          resolve(tex);
+        }, undefined, () => resolve(null));
+      });
+    }
+
+    function sceneCenter(zOff = 0) {
+      const s = state.stations; if (!s || !s.length) return new THREE.Vector3();
+      let x = 0, y = 0, z = 0; s.forEach(t => { x += t.surveyPosition.x; y += t.surveyPosition.y; z += (t.groundZ ?? t.surveyPosition.z - 1.6); });
+      return new THREE.Vector3(x / s.length, y / s.length, z / s.length + zOff);
+    }
+    function sceneExtent() {
+      const s = state.stations; if (!s || !s.length) return 30;
+      const xs = s.map(t => t.surveyPosition.x), ys = s.map(t => t.surveyPosition.y);
+      return Math.max(15, Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) + 10);
+    }
+    // Build Mattertags (3D Information Hotspots)
+    const mattertagDefs = [];
+
+    function buildMattertags() {
+      mattertagDefs.forEach(tag => {
+        const tagGroup = new THREE.Group();
+        tagGroup.position.set(tag.pos[0], tag.pos[1], tag.pos[2]);
+
+        const haloGeo = new THREE.RingGeometry(0.35, 0.52, 24);
+        const haloMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+        const halo = new THREE.Mesh(haloGeo, haloMat);
+
+        const dotGeo = new THREE.SphereGeometry(0.22, 16, 16);
+        const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const dot = new THREE.Mesh(dotGeo, dotMat);
+
+        tagGroup.add(halo);
+        tagGroup.add(dot);
+        tagGroup.userData = { isMattertag: true, data: tag };
+        state.mattertagsGroup.add(tagGroup);
+      });
+    }
+
+    // Build Highlight Reel UI Cards
+    function buildHighlightReel() {
+      const reel = document.getElementById('highlight-reel');
+      reel.innerHTML = '';
+
+      state.stations.forEach((st, idx) => {
+        const card = document.createElement('div');
+        card.className = `reel-card ${idx === 0 ? 'active' : ''}`;
+        card.innerHTML = `
+          <img src="${st.thumbnail}" alt="${st.name}">
+          ${!st.hasPanorama ? '<div class="reel-badge-lidar">LiDAR</div>' : ''}
+          <div class="reel-card-title">S${String(st.id).padStart(2, '0')}</div>
+        `;
+        card.addEventListener('click', () => {
+          if (state.mode !== 'inside') switchMode('inside');
+          navigateToStation(idx);
+        });
+        reel.appendChild(card);
+      });
+    }
+
+    // Switch Viewing Modes (Inside Tour, Dollhouse, Floor Plan)
+    function switchMode(newMode) {
+      if (state.mode === newMode) return;
+      state.mode = newMode;
+
+      document.querySelectorAll('.mode-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-mode') === newMode);
+      });
+
+      const st = state.stations[state.currentStationIndex];
+      const curPos = new THREE.Vector3(st.surveyPosition.x, st.surveyPosition.y, st.surveyPosition.z);
+
+      if (newMode === 'inside') {
+        showToast('Entering 360° Walkthrough...');
+        document.getElementById('walk-nav-hud').style.display = 'flex';
+        controls.rotateSpeed = -0.35;
+        controls.minDistance = 0.001;
+        controls.maxDistance = 0.05;
+
+        new TWEEN.Tween(camera.position)
+          .to(curPos, 1000)
+          .easing(TWEEN.Easing.Cubic.Out)
+          .onUpdate(() => {
+            controls.target.copy(camera.position).addScaledVector(state.lookDir, 0.01);
+          })
+          .onComplete(() => {
+            controls.target.copy(curPos).addScaledVector(state.lookDir, 0.01);
+            controls.update();
+          })
+          .start();
+
+      } else if (newMode === 'dollhouse') {
+        showToast('🗺️ 3D Plan 3D View');
+        document.getElementById('walk-nav-hud').style.display = 'none';
+        controls.rotateSpeed = 0.8;
+        controls.minDistance = 2.0;
+        controls.maxDistance = 500;
+        camera.fov = 60;
+        camera.updateProjectionMatrix();
+
+        const _c = sceneCenter(), _e = sceneExtent();
+        const dollhouseCamPos = new THREE.Vector3(_c.x + _e * 0.25, _c.y - _e * 0.7, _c.z + _e * 0.75);
+        const centerDeck = sceneCenter(0);
+
+        new TWEEN.Tween(camera.position).to(dollhouseCamPos, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+        new TWEEN.Tween(controls.target).to(centerDeck, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+
+      } else if (newMode === 'floorplan') {
+        showToast('🧭 Floor Plan View (Top-Down)');
+        document.getElementById('walk-nav-hud').style.display = 'none';
+        controls.rotateSpeed = 0.8;
+        controls.minDistance = 3.0;
+        controls.maxDistance = 400;
+        camera.fov = 60;
+        camera.updateProjectionMatrix();
+
+        const centerDeck = sceneCenter(0);
+        const topDownPos = sceneCenter(sceneExtent() * 0.8); topDownPos.y -= 0.01;
+
+        new TWEEN.Tween(camera.position).to(topDownPos, 1000).easing(TWEEN.Easing.Cubic.Out).start();
+        new TWEEN.Tween(controls.target).to(centerDeck, 1000).easing(TWEEN.Easing.Cubic.Out).start();
+      }
+
+      updateVisibility();
+      updateInImagePucks();
+    }
+
+    // Toggle Texture Quality (4K Ultra vs Fast Web)
+    function toggleQuality() {
+      state.quality = (state.quality === 'hd') ? 'web' : 'hd';
+      const icon = document.getElementById('quality-icon');
+      const text = document.getElementById('quality-text');
+      const btn = document.getElementById('btn-quality');
+
+      if (state.quality === 'hd') {
+        icon.innerText = '💎';
+        text.innerText = '4K Ultra';
+        btn.classList.add('active');
+        showToast('💎 Switched to Ultra HD 4K Photospheres');
+      } else {
+        icon.innerText = '⚡';
+        text.innerText = 'Fast Web (2.5K)';
+        btn.classList.remove('active');
+        showToast('⚡ Switched to Fast Web 2.5K');
+      }
+
+      setStationImmediate(state.currentStationIndex);
+    }
+
+    // Pointer Hover Card for Focus Points & Pucks
+    const hoverCard = document.getElementById('focus-hover-card');
+    const hoverThumb = document.getElementById('focus-hover-thumb');
+    const hoverTitle = document.getElementById('focus-hover-title');
+    const hoverDesc = document.getElementById('focus-hover-desc');
+    const hoverCoords = document.getElementById('focus-hover-coords');
+
+    // Robust detection combining 3D Raycasting and Screen-Space Proximity
+    function findPuckUnderPointer(clientX, clientY) {
+      mouse.x = (clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const targetGroup = (state.mode === 'inside') ? state.inImagePucksGroup : state.dollhouseBeaconsGroup;
+
+      // 1. Direct 3D Raycast Hit
+      const hits = raycaster.intersectObjects(targetGroup.children, true);
+      for (const hit of hits) {
+        let obj = hit.object;
+        while (obj && !obj.userData?.isNavPuck && !obj.userData?.isBeacon) obj = obj.parent;
+        if (obj && (obj.userData?.isNavPuck || obj.userData?.isBeacon)) {
+          const idx = obj.userData.stationIndex;
+          if (state.mode === 'inside' && idx === state.currentStationIndex) continue;
+          return obj.userData;
+        }
+      }
+
+      // 2. High-precision Screen-Space Proximity Hit (Matterport standard)
+      // Resolves grazing angle misses when looking straight down the deck
+      if (state.mode === 'inside') {
+        let closestStation = null;
+        let closestDist = Infinity;
+
+        state.inImagePucksGroup.children.forEach(puck => {
+          if (!puck.visible) return;
+          const idx = puck.userData.stationIndex;
+          if (idx === state.currentStationIndex) return;
+
+          // World position of the ground puck
+          const worldPos = new THREE.Vector3();
+          puck.getWorldPosition(worldPos);
+
+          for (const zOff of [0.15, 0.6]) {
+            const testPos = worldPos.clone();
+            testPos.z += zOff;
+
+            // Must be in front of camera
+            const toTarget = new THREE.Vector3().subVectors(testPos, camera.position);
+            const camDir = new THREE.Vector3();
+            camera.getWorldDirection(camDir);
+            if (camDir.dot(toTarget) <= 0.1) continue;
+
+            const screenPos = testPos.project(camera);
+            if (screenPos.z > 0 && screenPos.z < 1) {
+              const sx = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+              const sy = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+              const sDist = Math.hypot(clientX - sx, clientY - sy);
+
+              if (sDist < 68 && sDist < closestDist) {
+                closestDist = sDist;
+                closestStation = puck.userData;
+              }
+            }
+          }
+        });
+
+        if (closestStation) return closestStation;
+      }
+
+      return null;
+    }
+
+    function onPointerMove(e) {
+      if (state.isTransitioning) {
+        hoverCard.style.display = 'none';
+        canvas.style.cursor = 'default';
+        return;
+      }
+
+      const target = findPuckUnderPointer(e.clientX, e.clientY);
+      if (target) {
+        const st = target.stationData;
+        hoverThumb.src = st.thumbnail;
+        hoverTitle.innerText = `${st.name} • ${st.title}`;
+        hoverDesc.innerText = st.description;
+
+        const curPos = state.stations[state.currentStationIndex]?.surveyPosition;
+        if (state.mode === 'inside' && curPos) {
+          const d = Math.hypot(st.surveyPosition.x - curPos.x, st.surveyPosition.y - curPos.y);
+          hoverCoords.innerHTML = `🚶 <strong>${d.toFixed(1)}m</strong> ahead &bull; Click to walk`;
+        } else {
+          hoverCoords.innerHTML = `Elevation: ${st.surveyPosition.z.toFixed(2)}m &bull; ${st.pointCount.toLocaleString()} pts`;
+        }
+
+        hoverCard.style.left = `${e.clientX}px`;
+        hoverCard.style.top = `${e.clientY - 15}px`;
+        hoverCard.style.display = 'block';
+        canvas.style.cursor = 'pointer';
+        return;
+      }
+
+      hoverCard.style.display = 'none';
+      canvas.style.cursor = 'default';
+    }
+
+    // Handle Pointer Click (Touch / Mouse)
+    function handlePointerClick(e) {
+      if (state.isTransitioning) return;
+
+      const target = findPuckUnderPointer(e.clientX, e.clientY);
+      if (target) {
+        hoverCard.style.display = 'none';
+        if (state.mode !== 'inside') switchMode('inside');
+        navigateToStation(target.stationIndex);
+        return;
+      }
+
+      // Check Mattertags (3D Information Pins)
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      const tagHits = raycaster.intersectObjects(state.mattertagsGroup.children, true);
+      if (tagHits.length > 0) {
+        let topObj = tagHits[0].object;
+        while (topObj.parent && !topObj.userData.isMattertag) topObj = topObj.parent;
+        if (topObj.userData && topObj.userData.isMattertag) {
+          showMattertagPopup(topObj.userData.data, e.clientX, e.clientY);
+          return;
+        }
+      }
+
+      document.getElementById('mattertag-popup').style.display = 'none';
+    }
+
+    function showMattertagPopup(tag, x, y) {
+      const popup = document.getElementById('mattertag-popup');
+      document.getElementById('tag-title-text').innerText = tag.title;
+      document.getElementById('tag-desc-text').innerText = tag.desc;
+      document.getElementById('tag-meta-text').innerText = tag.meta;
+
+      const popupW = 270;
+      const left = Math.min(x + 12, window.innerWidth - popupW - 20);
+      const top = Math.min(y - 30, window.innerHeight - 150);
+
+      popup.style.left = `${left}px`;
+      popup.style.top = `${top}px`;
+      popup.style.display = 'block';
+    }
+
+    document.getElementById('tag-close-btn').addEventListener('click', () => {
+      document.getElementById('mattertag-popup').style.display = 'none';
+    });
+
+    // Radar / Mini-Map Drawing Engine
+    const radarCanvas = document.getElementById('radarCanvas');
+    const rCtx = radarCanvas.getContext('2d');
+
+    function drawRadar() {
+      if (!state.stations.length) return;
+      const w = radarCanvas.width;
+      const h = radarCanvas.height;
+      rCtx.clearRect(0, 0, w, h);
+
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      state.stations.forEach(s => {
+        const px = s.surveyPosition.x;
+        const py = s.surveyPosition.y;
+        if (px < minX) minX = px;
+        if (px > maxX) maxX = px;
+        if (py < minY) minY = py;
+        if (py > maxY) maxY = py;
+      });
+      const padX = (maxX - minX) * 0.12 || 8;
+      const padY = (maxY - minY) * 0.12 || 8;
+      minX -= padX; maxX += padX;
+      minY -= padY; maxY += padY;
+
+      function toRadar(x, y) {
+        const rx = 15 + ((x - minX) / (maxX - minX)) * (w - 30);
+        const ry = (h - 15) - ((y - minY) / (maxY - minY)) * (h - 30);
+        return { x: rx, y: ry };
+      }
+
+      // Draw Route Guideline
+      rCtx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+      rCtx.lineWidth = 2.5;
+      rCtx.beginPath();
+      let started = false;
+      state.stations.forEach(s => {
+        if (!s.hasPanorama) return;
+        const pt = toRadar(s.surveyPosition.x, s.surveyPosition.y);
+        if (!started) { rCtx.moveTo(pt.x, pt.y); started = true; }
+        else { rCtx.lineTo(pt.x, pt.y); }
+      });
+      rCtx.stroke();
+
+      // Draw Current View Direction Cone
+      const curSt = state.stations[state.currentStationIndex];
+      if (curSt) {
+        const curPt = toRadar(curSt.surveyPosition.x, curSt.surveyPosition.y);
+
+        const camDir = new THREE.Vector3();
+        camera.getWorldDirection(camDir);
+        const heading = Math.atan2(camDir.y, camDir.x);
+
+        const fovAngle = (camera.fov * Math.PI) / 180;
+        const coneDist = 28;
+        rCtx.fillStyle = 'rgba(0, 210, 255, 0.25)';
+        rCtx.beginPath();
+        rCtx.moveTo(curPt.x, curPt.y);
+        rCtx.arc(curPt.x, curPt.y, coneDist, -heading - fovAngle / 2, -heading + fovAngle / 2);
+        rCtx.closePath();
+        rCtx.fill();
+      }
+
+      // Draw Station Dots
+      state.stations.forEach((st, idx) => {
+        const pt = toRadar(st.surveyPosition.x, st.surveyPosition.y);
+        const isActive = (idx === state.currentStationIndex);
+
+        rCtx.beginPath();
+        rCtx.arc(pt.x, pt.y, isActive ? 5 : 3.5, 0, Math.PI * 2);
+        if (isActive) {
+          rCtx.fillStyle = '#00d2ff';
+          rCtx.shadowColor = '#00d2ff';
+          rCtx.shadowBlur = 8;
+        } else {
+          rCtx.fillStyle = st.hasPanorama ? '#ffffff' : '#fbbf24';
+          rCtx.shadowBlur = 0;
+        }
+        rCtx.fill();
+        rCtx.shadowBlur = 0;
+      });
+    }
+
+    // Click on Radar jumps directly to station
+    radarCanvas.addEventListener('click', (e) => {
+      const rect = radarCanvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      state.stations.forEach(s => {
+        const px = s.surveyPosition.x;
+        const py = s.surveyPosition.y;
+        if (px < minX) minX = px;
+        if (px > maxX) maxX = px;
+        if (py < minY) minY = py;
+        if (py > maxY) maxY = py;
+      });
+      const padX = (maxX - minX) * 0.12 || 8;
+      const padY = (maxY - minY) * 0.12 || 8;
+      minX -= padX; maxX += padX;
+      minY -= padY; maxY += padY;
+      const w = radarCanvas.width;
+      const h = radarCanvas.height;
+
+      let closestIdx = -1;
+      let closestDist = 999;
+
+      state.stations.forEach((st, idx) => {
+        const rx = 15 + ((st.surveyPosition.x - minX) / (maxX - minX)) * (w - 30);
+        const ry = (h - 15) - ((st.surveyPosition.y - minY) / (maxY - minY)) * (h - 30);
+        const d = Math.hypot(rx - clickX, ry - clickY);
+        if (d < closestDist && d < 18) {
+          closestDist = d;
+          closestIdx = idx;
+        }
+      });
+
+      if (closestIdx !== -1) {
+        if (state.mode !== 'inside') switchMode('inside');
+        navigateToStation(closestIdx);
+      }
+    });
+
+    // Guided Tour Autoplay
+    function toggleTourPlay() {
+      state.isPlayingTour = !state.isPlayingTour;
+      const btn = document.getElementById('btn-tour-play');
+      const icon = document.getElementById('play-icon');
+      const text = document.getElementById('play-text');
+
+      if (state.isPlayingTour) {
+        btn.classList.add('playing');
+        icon.innerText = '⏸';
+        text.innerText = 'Pause Tour';
+        showToast('▶ Guided Tour Started');
+        if (state.mode !== 'inside') switchMode('inside');
+        playNextTourStep();
+      } else {
+        btn.classList.remove('playing');
+        icon.innerText = '▶';
+        text.innerText = 'Play Tour';
+        clearTimeout(state.tourTimer);
+        showToast('Tour Paused');
+      }
+    }
+
+    function playNextTourStep() {
+      if (!state.isPlayingTour) return;
+      let nextIdx = (state.currentStationIndex + 1) % state.stations.length; // loop over all stations
+      navigateToStation(nextIdx);
+
+      state.tourTimer = setTimeout(() => {
+        if (state.isPlayingTour) playNextTourStep();
+      }, 4000);
+    }
+
+    // UI Event Listeners
+    document.querySelectorAll('.mode-pill').forEach(btn => {
+      btn.addEventListener('click', () => switchMode(btn.getAttribute('data-mode')));
+    });
+
+    // Dollhouse 3D Layer Switcher (Colored Mesh vs Laser Point Cloud)
+    document.querySelectorAll('.layer-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const layer = btn.getAttribute('data-layer');
+        state.dollhouseLayer = layer;
+        document.querySelectorAll('.layer-pill').forEach(b => b.classList.toggle('active', b === btn));
+        updateVisibility();
+        showToast(layer === 'mesh' ? '🎨 3D Colored Mesh Active' : '⚡ Laser Point Cloud Active');
+      });
+    });
+
+    document.getElementById('btn-quality').addEventListener('click', toggleQuality);
+    document.getElementById('btn-tour-play').addEventListener('click', toggleTourPlay);
+
+    document.getElementById('btn-reel-toggle').addEventListener('click', () => {
+      document.getElementById('highlight-reel').classList.toggle('open');
+    });
+
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    });
+
+    // Precise Pointer Click vs Drag Tracking (Zero missed clicks, zero accidental drags)
+    let pointerDownState = { x: 0, y: 0, time: 0, isDown: false };
+
+    canvas.addEventListener('pointerdown', (e) => {
+      pointerDownState = {
+        x: e.clientX,
+        y: e.clientY,
+        time: performance.now(),
+        isDown: true
+      };
+    });
+
+    canvas.addEventListener('pointerup', (e) => {
+      if (!pointerDownState.isDown) return;
+      pointerDownState.isDown = false;
+
+      const dx = e.clientX - pointerDownState.x;
+      const dy = e.clientY - pointerDownState.y;
+      const dist = Math.hypot(dx, dy);
+      const dt = performance.now() - pointerDownState.time;
+
+      // Deliberate click: movement < 14px and press duration < 500ms
+      if (dist < 14 && dt < 500) {
+        handlePointerClick(e);
+      }
+    });
+
+    canvas.addEventListener('pointermove', onPointerMove);
+
+    // Walk HUD Buttons (Using dynamic reachable panorama targets)
+    document.getElementById('btn-walk-prev').addEventListener('click', () => {
+      const prevIdx = parseInt(document.getElementById('btn-walk-prev').dataset.targetIndex, 10);
+      if (!isNaN(prevIdx)) navigateToStation(prevIdx);
+      else if (state.currentStationIndex > 0) navigateToStation(state.currentStationIndex - 1);
+    });
+    document.getElementById('btn-walk-next').addEventListener('click', () => {
+      const nextIdx = parseInt(document.getElementById('btn-walk-next').dataset.targetIndex, 10);
+      if (!isNaN(nextIdx)) navigateToStation(nextIdx);
+      else if (state.currentStationIndex < state.stations.length - 1) navigateToStation(state.currentStationIndex + 1);
+    });
+
+    // Keyboard Shortcuts for Continuous Walking (W / S or Arrow Keys)
+    window.addEventListener('keydown', (e) => {
+      if (state.mode !== 'inside') return;
+      if (e.key === 'ArrowRight' || e.key === 'w' || e.key === 'W') {
+        const nextIdx = parseInt(document.getElementById('btn-walk-next').dataset.targetIndex, 10);
+        if (!isNaN(nextIdx)) navigateToStation(nextIdx);
+        else if (state.currentStationIndex < state.stations.length - 1) navigateToStation(state.currentStationIndex + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 's' || e.key === 'S') {
+        const prevIdx = parseInt(document.getElementById('btn-walk-prev').dataset.targetIndex, 10);
+        if (!isNaN(prevIdx)) navigateToStation(prevIdx);
+        else if (state.currentStationIndex > 0) navigateToStation(state.currentStationIndex - 1);
+      }
+    });
+
+    // Optical FOV Zooming in Inside Tour
+    canvas.addEventListener('wheel', (e) => {
+      if (state.mode === 'inside') {
+        e.preventDefault();
+        camera.fov = Math.max(30, Math.min(85, camera.fov + e.deltaY * 0.04));
+        camera.updateProjectionMatrix();
+        drawRadar();
+      }
+    }, { passive: false });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Main Animation Loop
+    function animate(time) {
+      requestAnimationFrame(animate);
+      TWEEN.update(time);
+      controls.update();
+
+      // Billboarding for Mattertags to face camera
+      state.mattertagsGroup.children.forEach(tag => {
+        tag.quaternion.copy(camera.quaternion);
+      });
+
+      // Animate ground pulse wave and floor decal breathing
+      state.inImagePucksGroup.children.forEach(puck => {
+        if (!puck.visible) return;
+        if (puck.userData.pulseRing && puck.userData.pulseRingMat) {
+          const wave = ((time * 0.0012) + puck.userData.stationIndex * 0.3) % 1.0;
+          const s = 1.0 + wave * 0.85;
+          puck.userData.pulseRing.scale.set(s, s, 1);
+          puck.userData.pulseRingMat.opacity = Math.max(0, 0.6 * (1.0 - wave));
+        }
+        if (puck.userData.decalMesh) {
+          const pulse = 1.0 + Math.sin(time * 0.004) * 0.03;
+          puck.userData.decalMesh.scale.set(pulse, pulse, 1);
+        }
+        if (puck.userData.waypointSprite) {
+          puck.userData.waypointSprite.position.z = 0.12 + Math.sin(time * 0.0035 + puck.userData.stationIndex) * 0.01;
+        }
+      });
+
+      // Redraw Radar FOV cone smoothly while looking around
+      if (state.mode === 'inside') {
+        drawRadar();
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // Start Engine
+    init().then(() => animate(0));
+  </script>
+</body>
+</html>

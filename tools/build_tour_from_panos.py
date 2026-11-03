@@ -7,8 +7,16 @@ Builds a static 360 walkthrough (same viewer as e57_pipeline) from
   * a DXF floor plan, shown in the "Dollhouse" / "Floor Plan" modes instead of a 3D mesh.
 
 Usage:
-    pip install pillow numpy ezdxf matplotlib
-    python tools/build_tour_from_panos.py --config tools/tour_config.json
+    pip install pillow numpy ezdxf matplotlib shapely
+    python tools/build_tour_from_panos.py --config tools/tour_config.json      # full build (needs panorama_dir)
+    python tools/build_tour_from_panos.py --update-viewer                      # re-use existing scan_stations.json:
+        recompute line of sight, area names, walking order and rewrite index.html (no panoramas / no F: drive needed)
+
+scan_stations.json fields added for the viewer:
+    visible   – stations in line of sight (floor markers shown inside the panorama)
+    links     – registration links = walkable connections (minimap lines)
+    walkIndex – position in the walking order (W / S keys, Next / Previous, guided tour)
+    area, title, description – DXF area label the station is in (layer A-AREA-IDEN)
 
 Output (the folder you push to GitHub / GitHub Pages):
     index.html, scan_stations.json, floorplan.png, floorplan.json,
@@ -150,9 +158,8 @@ def render_floorplan(dxf_path, out, fcfg):
 
 
 # ---------------------------------------------------------------- line of sight
-def compute_visibility(stations, dxf_path, vcfg, u2m):
-    """Station B is shown inside station A's panorama when the straight line A->B is not blocked
-    by a wall in the DXF (doors/glass do not block), or when A-B is a registration link."""
+def load_walls(dxf_path, vcfg, u2m):
+    """Wall segments (metres) from the DXF wall layers + wall hatches, with an STRtree index."""
     import ezdxf, shapely
     from shapely.geometry import LineString
     from ezdxf import path as zpath
@@ -177,18 +184,36 @@ def compute_visibility(stations, dxf_path, vcfg, u2m):
                 v = [(q.x * s, q.y * s) for q in zpath.from_hatch_boundary_path(bp).flattening(5)]
                 if len(v) > 1:
                     segs.append(LineString(v))
-    tree = shapely.STRtree(segs)
+    return segs, shapely.STRtree(segs)
+
+
+def make_clear(walls, tol, end_margin=0.15):
+    """clear(a, b) -> True when the straight line a->b (numpy 2D points, metres) crosses no wall."""
+    from shapely.geometry import LineString
+    segs, tree = walls
+
+    def clear(a, b):
+        d = np.linalg.norm(b - a)
+        if d < 2 * end_margin + 1e-6:
+            return True
+        u = (b - a) / d; n = np.array([-u[1], u[0]])
+        for off in (0.0, tol, -tol):          # tolerate ~0.25 m position error near wall corners
+            seg = LineString([a + u * end_margin + n * off, b - u * end_margin + n * off])
+            if not any(segs[k].intersects(seg) for k in tree.query(seg)):
+                return True
+        return False
+    return clear
+
+
+def compute_visibility(stations, dxf_path, vcfg, u2m, walls=None):
+    """Station B is shown inside station A's panorama when the straight line A->B is not blocked
+    by a wall in the DXF (doors/glass do not block), or when A-B is a registration link."""
+    walls = walls or load_walls(dxf_path, vcfg, u2m)
     tol = vcfg.get("lateral_tolerance_m", 0.25)
     maxd = vcfg.get("max_distance_m", 40.0)
     P = [np.array([st["surveyPosition"]["x"], st["surveyPosition"]["y"]]) for st in stations]
 
-    def clear(a, b):
-        d = np.linalg.norm(b - a); u = (b - a) / d; n = np.array([-u[1], u[0]])
-        for off in (0.0, tol, -tol):          # tolerate ~0.25 m position error near wall corners
-            seg = LineString([a + u * 0.15 + n * off, b - u * 0.15 + n * off])
-            if not any(segs[k].intersects(seg) for k in tree.query(seg)):
-                return True
-        return False
+    clear = make_clear(walls, tol)
 
     ids = [st["id"] for st in stations]
     vis = {i: set() for i in ids}
@@ -204,113 +229,193 @@ def compute_visibility(stations, dxf_path, vcfg, u2m):
         st["visible"] = sorted(vis[st["id"]])
     return stations
 
+# ---------------------------------------------------------------- area names
+def _nice(text, keep_upper=3):
+    """'OPEN STUDY AREA' -> 'Open Study Area'; short ASCII acronyms (BIM, WC) stay upper case."""
+    words = []
+    for w in text.split(" "):
+        if w.isascii() and w.isalpha() and len(w) <= keep_upper and w.isupper() and w not in ("AND", "THE", "OF", "FOR", "LAB"):
+            words.append(w)
+        else:
+            words.append("/".join(x[:1].upper() + x[1:].lower() for x in w.split("/")))
+    return " ".join(words)
+
+
+def read_area_labels(dxf_path, u2m, layer="A-AREA-IDEN", code_re=r"[A-Z]+\d*-[\w.]+"):
+    """Room tags of the DXF: a code MTEXT (e.g. 'B6-2.CR4') with the Vietnamese name one line above
+    and the English name two lines above (the Vietnamese line is split into fragments by the CAD export)."""
+    import ezdxf
+    msp = ezdxf.readfile(dxf_path).modelspace()
+    dec = lambda t: re.sub(r"\\U\+([0-9A-Fa-f]{4})", lambda m: chr(int(m.group(1), 16)), t)
+    T = []
+    for e in msp.query(f'MTEXT[layer=="{layer}"]'):
+        t = dec(e.plain_text())                 # keep spaces: fragments are joined without separator
+        if t.strip():
+            T.append((t.strip() if re.fullmatch(code_re, t.strip()) else t, e.dxf.insert.x, e.dxf.insert.y))
+    labels = []
+    for t, x, y in T:
+        if not re.fullmatch(code_re, t):
+            continue
+        above = [o for o in T if o[0] != t and abs(o[1] - x) < 3000 and 50 < o[2] - y < 700
+                 and not re.fullmatch(code_re, o[0])]
+        rows = {}
+        for o in above:
+            rows.setdefault(round((o[2] - y) / 40), []).append(o)
+        lines = [" ".join("".join(f[0] for f in sorted(r, key=lambda f: f[1])).split())
+                 for _, r in sorted(rows.items())]                     # bottom -> top
+        en = _nice(lines[-1]) if lines else ""
+        vi = _nice(lines[0], keep_upper=0).capitalize() if len(lines) > 1 else ""
+        labels.append({"code": t, "en": en, "vi": vi, "x": x * u2m, "y": y * u2m})
+    return labels
+
+
+def load_floor_area(dxf_path, layer, u2m):
+    """Union of the corridor / circulation hatch (e.g. A-FLOR-PATT) in metres, or None."""
+    try:
+        import ezdxf
+        from shapely.geometry import Polygon
+        from shapely.ops import unary_union
+        from ezdxf import path as zpath
+    except ImportError:
+        return None
+    msp = ezdxf.readfile(dxf_path).modelspace()
+    area = None
+    for e in msp.query(f'HATCH[layer=="{layer}"]'):
+        rings = [Polygon([(q.x * u2m, q.y * u2m) for q in zpath.from_hatch_boundary_path(bp).flattening(10)]).buffer(0)
+                 for bp in e.paths if len(bp.vertices if hasattr(bp, "vertices") else [1, 2, 3]) > 2]
+        for P in sorted(rings, key=lambda g: -g.area):        # even-odd: islands become holes
+            area = P if area is None else area.symmetric_difference(P)
+    return area
+
+
+def name_areas(stations, labels, clear, overrides=None, max_dist=25.0, floor_area=None, area_overrides=None):
+    """Each station gets the nearest area label it can see (no wall in between); else the nearest one.
+    Stations inside the corridor hatch only take labels that are inside the hatch too (and vice versa),
+    so a corridor station does not get the name of a room seen through its door."""
+    from shapely.geometry import Point
+    overrides = overrides or {}; area_overrides = area_overrides or {}
+    inside = (lambda x, y: floor_area.buffer(0.3).covers(Point(x, y))) if floor_area is not None else None
+    if inside:
+        for L in labels:
+            L["in_floor"] = inside(L["x"], L["y"])
+    by_code = {L["code"]: L for L in labels}
+    for st in stations:
+        p = np.array([st["surveyPosition"]["x"], st["surveyPosition"]["y"]])
+        pool = labels
+        if inside:
+            same = [L for L in labels if L["in_floor"] == inside(p[0], p[1])]
+            pool = same or labels
+        cand = sorted(pool, key=lambda L: np.hypot(L["x"] - p[0], L["y"] - p[1]))
+        best = next((L for L in cand if np.hypot(L["x"] - p[0], L["y"] - p[1]) <= max_dist
+                     and clear(p, np.array([L["x"], L["y"]]))), cand[0] if cand else None)
+        key = f"S{st['id']:03d}"
+        if area_overrides.get(key) in by_code:
+            best = by_code[area_overrides[key]]
+        if best:
+            st["area"] = best["code"]
+            st["title"] = f"{best['en'] or best['code']} · {best['code']}"
+            st["description"] = best["vi"] or best["en"]
+        if key in overrides:
+            st["description"] = overrides[key]
+    return stations
+
+
+# ---------------------------------------------------------------- walking order
+def compute_walk_order(stations, links, start_id=None):
+    """Order all stations into one walk (W / S keys, guided tour). Steps along registration links are
+    preferred, then steps between stations in line of sight; a step through a wall costs +1000 m.
+    Nearest-neighbour start + 2-opt improvement of the open path (first station fixed)."""
+    ids = [st["id"] for st in stations]
+    P = {st["id"]: np.array([st["surveyPosition"]["x"], st["surveyPosition"]["y"]]) for st in stations}
+    vis = {st["id"]: set(st.get("visible", [])) for st in stations}
+    L = {i: set() for i in ids}
+    for a, b in links:
+        if a in L and b in L:
+            L[a].add(b); L[b].add(a)
+
+    def cost(a, b):
+        d = float(np.linalg.norm(P[a] - P[b]))
+        return d if b in L[a] else d + 5.0 if b in vis[a] else d + 1000.0
+
+    start = start_id if start_id in P else min(ids)
+    path, rest = [start], set(ids) - {start}
+    while rest:
+        nxt = min(rest, key=lambda j: (cost(path[-1], j), j)); path.append(nxt); rest.remove(nxt)
+    n, improved = len(path), True
+    while improved:
+        improved = False
+        for i in range(1, n - 1):
+            for k in range(i + 1, n):
+                a, b, c = path[i - 1], path[i], path[k]
+                d = path[k + 1] if k + 1 < n else None
+                old = cost(a, b) + (cost(c, d) if d is not None else 0)
+                new = cost(a, c) + (cost(b, d) if d is not None else 0)
+                if new < old - 1e-9:
+                    path[i:k + 1] = path[i:k + 1][::-1]; improved = True
+    for st in stations:
+        st["walkIndex"] = path.index(st["id"])
+        st["links"] = sorted(L[st["id"]])
+    jumps = [(a, b) for a, b in zip(path, path[1:]) if b not in vis[a] and b not in L[a]]
+    return path, jumps
+
+
 # ---------------------------------------------------------------- viewer
 def patch_viewer(template, out, cfg):
+    """Fill the {{TOKENS}} of viewer_template_floorplan.html and write index.html."""
     html = Path(template).read_text(encoding="utf-8")
-    name = cfg.get("project_name", "360 Walkthrough")
-    sub = cfg.get("project_subtitle", "360° Walkthrough")
-    html = re.sub(r"<title>.*?</title>", f"<title>{name}</title>", html)
-    html = html.replace("VGU Bridge 3D Showcase", name)
-    html = html.replace("VGU Cable Bridge &bull; 3D Digital Twin", f"{name} &bull; {sub}")
-    html = re.sub(r'<a href="potree_bridge/index.html"[^>]*>.*?</a>', "", html)
-    html = re.sub(r'<a href="index.html" class="mp-btn"[^>]*>.*?</a>', "", html)
-    html = html.replace("along the bridge deck", "to the next station")
-    html = html.replace("'Start of Deck'", "'Start of Walk'")
-    html = html.replace("% 9; // loop along main deck", "% state.stations.length; // loop over all stations")
-    # --- floor plan instead of mesh / point cloud
-    new_loader = """function loadDollhouseModels() {
-      // 2D floor plan (DXF render) laid on the floor plane, shown in Dollhouse / Floor Plan modes
-      fetch('floorplan.json').then(r => r.json()).then(fp => {
-        new THREE.TextureLoader().load(fp.image, (tex) => {
-          tex.colorSpace = THREE.SRGBColorSpace;
-          tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-          const w = fp.maxX - fp.minX, h = fp.maxY - fp.minY;
-          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
-                                   new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
-          m.position.set((fp.minX + fp.maxX) / 2, (fp.minY + fp.maxY) / 2, fp.z || 0);
-          m.renderOrder = -50;
-          state.dollhouseMesh = m;
-          m.visible = (state.mode === 'dollhouse' || state.mode === 'floorplan');
-          scene.add(m);
-        });
-      }).catch(() => console.log('No floor plan found'));
+    im = cfg.get("images", {})
+    tokens = {
+        "PROJECT_NAME": cfg.get("project_name", "360 Walkthrough"),
+        "PROJECT_SUBTITLE": cfg.get("project_subtitle", "360° Walkthrough"),
+        "BADGE": cfg.get("badge", "360"),
+        "HD_LABEL": cfg.get("hd_label", "HD %gK" % (im.get("hd_resolution", 4096) / 1024)),
+        "WEB_LABEL": cfg.get("web_label", "Web %gK" % (im.get("web_resolution", 2560) / 1024)),
+        "TEXTURE_CACHE_MAX": str(int(cfg.get("texture_cache_max", 6))),
+        "MARKER_SCALE": str(cfg.get("marker_scale", 0.2)),
+        "BADGE_HEIGHT": str(cfg.get("badge_height_m", 0.12)),
+        "MATTERTAGS": json.dumps(cfg.get("mattertags", []), ensure_ascii=False),
     }
-    function _unusedOldLoader() {"""
-    html = html.replace("function loadDollhouseModels() {", new_loader, 1)
-    html = html.replace("if (state.dollhouseMesh) state.dollhouseMesh.visible = isDollhouse && (state.dollhouseLayer === 'mesh');",
-                        "if (state.dollhouseMesh) state.dollhouseMesh.visible = isDollhouse;")
-    html = html.replace("if (dollhouseLayerDock) dollhouseLayerDock.style.display = isDollhouse ? 'flex' : 'none';",
-                        "if (dollhouseLayerDock) dollhouseLayerDock.style.display = 'none';")
-    html = html.replace("🏠 Dollhouse", "🗺️ 3D Plan")
-    # --- camera framing from station extents (template was hard-coded to the bridge)
-    helper = """
-    function sceneCenter(zOff = 0) {
-      const s = state.stations; if (!s || !s.length) return new THREE.Vector3();
-      let x = 0, y = 0, z = 0; s.forEach(t => { x += t.surveyPosition.x; y += t.surveyPosition.y; z += (t.groundZ ?? t.surveyPosition.z - 1.6); });
-      return new THREE.Vector3(x / s.length, y / s.length, z / s.length + zOff);
-    }
-    function sceneExtent() {
-      const s = state.stations; if (!s || !s.length) return 30;
-      const xs = s.map(t => t.surveyPosition.x), ys = s.map(t => t.surveyPosition.y);
-      return Math.max(15, Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) + 10);
-    }
-    // Build Mattertags (3D Information Hotspots)"""
-    html = html.replace("\n    // Build Mattertags (3D Information Hotspots)", helper, 1)
-    html = html.replace("const dollhouseCamPos = new THREE.Vector3(curPos.x + 35, curPos.y - 55, curPos.z + 40);",
-                        "const _c = sceneCenter(), _e = sceneExtent();\n        const dollhouseCamPos = new THREE.Vector3(_c.x + _e * 0.25, _c.y - _e * 0.7, _c.z + _e * 0.75);")
-    html = html.replace("const centerDeck = new THREE.Vector3(-66.5, 171.2, 10.0);", "const centerDeck = sceneCenter(0);")
-    html = html.replace("const centerDeck = new THREE.Vector3(-66.5, 171.2, 0);", "const centerDeck = sceneCenter(0);")
-    html = html.replace("const topDownPos = new THREE.Vector3(-66.5, 171.2, 140.0);",
-                        "const topDownPos = sceneCenter(sceneExtent() * 0.8); topDownPos.y -= 0.01;")
-    html = html.replace("controls.minDistance = 20.0;", "controls.minDistance = 3.0;")
-    html = html.replace("controls.minDistance = 5.0;", "controls.minDistance = 2.0;")
-    html = re.sub(r"const mattertagDefs = \[.*?\n    \];",
-                  "const mattertagDefs = " + json.dumps(cfg.get("mattertags", []), ensure_ascii=False) + ";",
-                  html, count=1, flags=re.S)
-    # --- floor markers: small, lying on the floor (scale from config, 1.0 = original template size)
-    k = cfg.get("marker_scale", 0.2)
-    html = html.replace("const ringGeo = new THREE.RingGeometry(1.60, 2.30, 48);",
-                        f"const ringGeo = new THREE.RingGeometry({1.60*k:.3f}, {2.30*k:.3f}, 48);")
-    html = html.replace("const pulseGeo = new THREE.RingGeometry(2.35, 3.20, 48);",
-                        f"const pulseGeo = new THREE.RingGeometry({2.35*k:.3f}, {3.20*k:.3f}, 48);")
-    html = html.replace("const decalGeo = new THREE.CircleGeometry(1.55, 48);",
-                        f"const decalGeo = new THREE.CircleGeometry({1.55*k:.3f}, 48);")
-    html = html.replace("const hitGeo = new THREE.CylinderGeometry(4.2, 4.2, 3.5, 16);",
-                        f"const hitGeo = new THREE.CylinderGeometry({max(0.5, 4.2*k):.3f}, {max(0.5, 4.2*k):.3f}, 0.6, 16);")
-    html = html.replace("hitMesh.position.set(0, 0, 0.6);", "hitMesh.position.set(0, 0, 0.3);")
-    bz = cfg.get("badge_height_m", 0.12)
-    html = html.replace("waypointSprite.position.set(0, 0, 0.6);", f"waypointSprite.position.set(0, 0, {bz});")
-    html = html.replace("puck.userData.waypointSprite.position.z = 0.6 + Math.sin(time * 0.0035 + puck.userData.stationIndex) * 0.07;",
-                        f"puck.userData.waypointSprite.position.z = {bz} + Math.sin(time * 0.0035 + puck.userData.stationIndex) * 0.01;")
-    html = html.replace("sprite.scale.set(3.2, 1.2, 1);\n      return sprite;\n    }\n",
-                        f"sprite.scale.set({3.2*k:.3f}, {1.2*k:.3f}, 1);\n      return sprite;\n    }}\n", 1)
-    # --- show every station that is in line of sight (scan_stations.json "visible"), not only prev/next
-    old_reach = html[html.index("    function getReachableStationIndices(curIdx) {"):html.index("    function updateInImagePucks() {")]
-    new_reach = """    function getReachableStationIndices(curIdx) {
-      const cur = state.stations[curIdx]; if (!cur) return [];
-      const out = [];
-      const add = (i) => { if (i >= 0 && i !== curIdx && state.stations[i] && state.stations[i].hasPanorama && !out.includes(i)) out.push(i); };
-      add(curIdx + 1); add(curIdx - 1);                       // walk order first (keeps W / S and default view)
-      if (Array.isArray(cur.visible)) {
-        cur.visible.forEach(id => add(state.stations.findIndex(s => s.id === id)));
-        return out.filter(i => cur.visible.includes(state.stations[i].id) || Math.abs(i - curIdx) === 1);
-      }
-      return out;
-    }
-
-"""
-    html = html.replace(old_reach, new_reach)
-    html = html.replace("if (dist < 3.5) {", "if (dist < 0.3) {")
-    leftovers = [k for k in ("-66.5, 171.2", "bridge_bpa_colored.glb\"", "potree_bridge") if k in html]
+    for k, v in tokens.items():
+        html = html.replace("{{%s}}" % k, v)
+    leftovers = sorted(set(re.findall(r"\{\{[A-Z_]+\}\}", html)))
     (out / "index.html").write_text(html, encoding="utf-8")
     return leftovers
 
 
 # ---------------------------------------------------------------- main
+def finish_stations(stations, cfg, rp, u2m, out):
+    """Line of sight, area names and walking order; writes scan_stations.json."""
+    dxf = str(rp(cfg["floorplan"]["dxf"]))
+    vcfg = cfg.get("visibility", {})
+    walls = load_walls(dxf, vcfg, u2m)
+    if vcfg.get("enable", True):
+        compute_visibility(stations, dxf, vcfg, u2m, walls)
+        print("line of sight: avg %.1f visible stations per station"
+              % (sum(len(st["visible"]) for st in stations) / len(stations)))
+    acfg = cfg.get("area_labels", {})
+    if acfg.get("enable", True):
+        labels = read_area_labels(dxf, u2m, acfg.get("layer", "A-AREA-IDEN"))
+        floor = load_floor_area(dxf, cfg["floorplan"].get("highlight_layer", "A-FLOR-PATT"), u2m)
+        name_areas(stations, labels, make_clear(walls, vcfg.get("lateral_tolerance_m", 0.25)),
+                   cfg.get("descriptions", {}), acfg.get("max_distance_m", 25.0), floor, acfg.get("overrides", {}))
+        print("area names: %d labels, e.g. %s" % (len(labels), stations[0].get("title")))
+    path, jumps = compute_walk_order(stations, vcfg.get("links", []), cfg.get("walk_start"))
+    print("walking order:", " ".join(f"S{i:03d}" for i in path))
+    if jumps:
+        print("  steps without line of sight:", ", ".join(f"S{a:03d}->S{b:03d}" for a, b in jumps))
+    stations.sort(key=lambda st: st["id"])
+    json.dump(stations, open(out / "scan_stations.json", "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+    print(f"stations: {len(stations)}")
+    return stations
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(HERE / "tour_config.json"))
     ap.add_argument("--skip-images", action="store_true")
+    ap.add_argument("--update-viewer", action="store_true",
+                    help="re-use <output_dir>/scan_stations.json (no panoramas needed): recompute line of sight, "
+                         "area names, walking order and rewrite index.html")
     a = ap.parse_args()
     cfg = json.load(open(a.config, encoding="utf-8"))
     base = Path(a.config).parent
@@ -319,9 +424,16 @@ def main():
     for d in ("photos", "photos_hd", "thumbnails"):
         (out / d).mkdir(parents=True, exist_ok=True)
 
+    u2m = cfg.get("floorplan", {}).get("units_to_m", 0.001)
+    if a.update_viewer:
+        stations = json.load(open(out / "scan_stations.json", encoding="utf-8"))
+        finish_stations(stations, cfg, rp, u2m, out)
+        left = patch_viewer(rp(cfg["viewer_template"]), out, cfg)
+        print("viewer written", "(unfilled tokens: %s)" % left if left else "")
+        return
+
     tr = json.load(open(rp(cfg["transform_file"])))
     th = math.radians(tr["theta_deg"]); sc = tr["scale"]; T = tr["T_mm"]
-    u2m = cfg.get("floorplan", {}).get("units_to_m", 0.001)
     qz = [math.cos(th / 2), 0, 0, math.sin(th / 2)]
     eye = cfg.get("scanner_height_m", 1.6)
     # Cyclone panorama exports put the image centre at a different scanner axis than the viewer expects
@@ -353,17 +465,12 @@ def main():
             src = pano_dir / f"{name}.jpg"
             print(f"[{i:>2}/{len(raw)}] {name}")
             process_pano(src, name, out, cfg.get("images", {}))
-    if cfg.get("visibility", {}).get("enable", True):
-        compute_visibility(stations, str(rp(cfg["floorplan"]["dxf"])), cfg.get("visibility", {}), u2m)
-        print("line of sight: avg %.1f visible stations per station"
-              % (sum(len(st["visible"]) for st in stations) / len(stations)))
-    json.dump(stations, open(out / "scan_stations.json", "w", encoding="utf-8"), indent=2)
-    print(f"stations: {len(stations)}")
+    finish_stations(stations, cfg, rp, u2m, out)
 
     meta = render_floorplan(str(rp(cfg["floorplan"]["dxf"])), out, cfg["floorplan"])
     print("floor plan:", meta)
     left = patch_viewer(rp(cfg["viewer_template"]), out, cfg)
-    print("viewer written", "(unpatched leftovers: %s)" % left if left else "")
+    print("viewer written", "(unfilled tokens: %s)" % left if left else "")
 
 
 if __name__ == "__main__":

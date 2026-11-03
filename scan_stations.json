@@ -16,7 +16,7 @@
       -0.000799451,
       0.98633636
     ],
-    "title": "Station S001",
+    "title": "BIM - Computer Lab · B6-217",
     "description": "Room B6-217",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S001.jpg",
@@ -26,6 +26,11 @@
       2,
       22,
       23
+    ],
+    "area": "B6-217",
+    "walkIndex": 0,
+    "links": [
+      2
     ]
   },
   {
@@ -45,7 +50,7 @@
       0.000648806,
       -0.808144829
     ],
-    "title": "Station S002",
+    "title": "BIM - Computer Lab · B6-217",
     "description": "Room B6-217",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S002.jpg",
@@ -55,6 +60,12 @@
       1,
       22,
       23,
+      26
+    ],
+    "area": "B6-217",
+    "walkIndex": 1,
+    "links": [
+      1,
       26
     ]
   },
@@ -75,8 +86,8 @@
       -0.000581799,
       0.684066588
     ],
-    "title": "Station S003",
-    "description": "Scan station S003",
+    "title": "Corridor · B6-2.CR3",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S003.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S003.jpg",
@@ -90,6 +101,11 @@
       10,
       11,
       36
+    ],
+    "area": "B6-2.CR3",
+    "walkIndex": 22,
+    "links": [
+      4
     ]
   },
   {
@@ -109,8 +125,8 @@
       -0.000994356,
       0.940726151
     ],
-    "title": "Station S004",
-    "description": "Scan station S004",
+    "title": "Corridor · B6-2.CR3",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S004.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S004.jpg",
@@ -124,6 +140,12 @@
       10,
       11,
       36
+    ],
+    "area": "B6-2.CR3",
+    "walkIndex": 21,
+    "links": [
+      3,
+      5
     ]
   },
   {
@@ -143,8 +165,8 @@
       -0.001012241,
       0.967629329
     ],
-    "title": "Station S005",
-    "description": "Scan station S005",
+    "title": "Corridor · B6-2.CR2",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S005.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S005.jpg",
@@ -158,6 +180,14 @@
       9,
       10,
       11,
+      36
+    ],
+    "area": "B6-2.CR2",
+    "walkIndex": 20,
+    "links": [
+      4,
+      7,
+      9,
       36
     ]
   },
@@ -178,8 +208,8 @@
       0.000655375,
       -0.534766716
     ],
-    "title": "Station S006",
-    "description": "Scan station S006",
+    "title": "Corridor · B6-2.CR1",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S006.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S006.jpg",
@@ -192,6 +222,12 @@
       8,
       10,
       11
+    ],
+    "area": "B6-2.CR1",
+    "walkIndex": 25,
+    "links": [
+      8,
+      10
     ]
   },
   {
@@ -211,8 +247,8 @@
       0.000529688,
       -0.339660898
     ],
-    "title": "Station S007",
-    "description": "Scan station S007",
+    "title": "Corridor · B6-2.CR1",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S007.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S007.jpg",
@@ -225,6 +261,12 @@
       8,
       10,
       11
+    ],
+    "area": "B6-2.CR1",
+    "walkIndex": 23,
+    "links": [
+      5,
+      8
     ]
   },
   {
@@ -244,8 +286,8 @@
       0.000756279,
       -0.580251493
     ],
-    "title": "Station S008",
-    "description": "Scan station S008",
+    "title": "Corridor · B6-2.CR1",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S008.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S008.jpg",
@@ -258,6 +300,12 @@
       7,
       10,
       11
+    ],
+    "area": "B6-2.CR1",
+    "walkIndex": 24,
+    "links": [
+      6,
+      7
     ]
   },
   {
@@ -277,8 +325,8 @@
       0.000824306,
       -0.587930015
     ],
-    "title": "Station S009",
-    "description": "Scan station S009",
+    "title": "Corridor · B6-2.CR2",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S009.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S009.jpg",
@@ -286,6 +334,11 @@
     "visible": [
       5,
       36
+    ],
+    "area": "B6-2.CR2",
+    "walkIndex": 19,
+    "links": [
+      5
     ]
   },
   {
@@ -305,8 +358,8 @@
       -0.001041509,
       -0.771039626
     ],
-    "title": "Station S010",
-    "description": "Scan station S010",
+    "title": "Corridor · B6-2.CR1",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S010.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S010.jpg",
@@ -321,6 +374,12 @@
       11,
       12,
       13
+    ],
+    "area": "B6-2.CR1",
+    "walkIndex": 26,
+    "links": [
+      6,
+      11
     ]
   },
   {
@@ -340,8 +399,8 @@
       0.000488534,
       0.937651097
     ],
-    "title": "Station S011",
-    "description": "Scan station S011",
+    "title": "Corridor · B6-2.CR1",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S011.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S011.jpg",
@@ -353,6 +412,12 @@
       6,
       7,
       8,
+      10,
+      12
+    ],
+    "area": "B6-2.CR1",
+    "walkIndex": 27,
+    "links": [
       10,
       12
     ]
@@ -374,14 +439,20 @@
       -0.00040098,
       0.395721694
     ],
-    "title": "Station S012",
-    "description": "Scan station S012",
+    "title": "Open Study Area · B6-236",
+    "description": "Khu tự học",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S012.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S012.jpg",
     "thumbnail": "thumbnails/VGU OCT 2026- S012.jpg",
     "visible": [
       10,
+      11,
+      13
+    ],
+    "area": "B6-236",
+    "walkIndex": 28,
+    "links": [
       11,
       13
     ]
@@ -403,8 +474,8 @@
       0.000821135,
       0.99782678
     ],
-    "title": "Station S013",
-    "description": "Scan station S013",
+    "title": "Open Study Area · B6-236",
+    "description": "Khu tự học",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S013.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S013.jpg",
@@ -417,6 +488,12 @@
       17,
       18,
       19
+    ],
+    "area": "B6-236",
+    "walkIndex": 29,
+    "links": [
+      12,
+      14
     ]
   },
   {
@@ -436,8 +513,8 @@
       0.001083786,
       0.97368778
     ],
-    "title": "Station S014",
-    "description": "Scan station S014",
+    "title": "Open Study Area · B6-236",
+    "description": "Khu tự học",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S014.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S014.jpg",
@@ -447,6 +524,12 @@
       15,
       16,
       18
+    ],
+    "area": "B6-236",
+    "walkIndex": 30,
+    "links": [
+      13,
+      15
     ]
   },
   {
@@ -466,8 +549,8 @@
       -0.001060992,
       0.596239615
     ],
-    "title": "Station S015",
-    "description": "Scan station S015",
+    "title": "Open Study Area · B6-236",
+    "description": "Khu tự học",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S015.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S015.jpg",
@@ -479,6 +562,12 @@
       17,
       18,
       19
+    ],
+    "area": "B6-236",
+    "walkIndex": 31,
+    "links": [
+      14,
+      16
     ]
   },
   {
@@ -498,14 +587,20 @@
       2.6683e-05,
       0.986528373
     ],
-    "title": "Station S016",
-    "description": "Scan station S016",
+    "title": "Open Study Area · B6-237",
+    "description": "Khu tự học",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S016.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S016.jpg",
     "thumbnail": "thumbnails/VGU OCT 2026- S016.jpg",
     "visible": [
       14,
+      15,
+      18
+    ],
+    "area": "B6-237",
+    "walkIndex": 32,
+    "links": [
       15,
       18
     ]
@@ -527,8 +622,8 @@
       2.3572e-05,
       0.9850649
     ],
-    "title": "Station S017",
-    "description": "Scan station S017",
+    "title": "Corridor · B6-2.CR8",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S017.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S017.jpg",
@@ -536,6 +631,12 @@
     "visible": [
       13,
       15,
+      18,
+      19
+    ],
+    "area": "B6-2.CR8",
+    "walkIndex": 34,
+    "links": [
       18,
       19
     ]
@@ -557,8 +658,8 @@
       -0.000865589,
       -0.322238083
     ],
-    "title": "Station S018",
-    "description": "Scan station S018",
+    "title": "Corridor · B6-2.CR8",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S018.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S018.jpg",
@@ -570,6 +671,12 @@
       16,
       17,
       19
+    ],
+    "area": "B6-2.CR8",
+    "walkIndex": 33,
+    "links": [
+      16,
+      17
     ]
   },
   {
@@ -589,8 +696,8 @@
       -0.000817257,
       0.581756576
     ],
-    "title": "Station S019",
-    "description": "Scan station S019",
+    "title": "Corridor · B6-2.CR8",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S019.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S019.jpg",
@@ -600,6 +707,12 @@
       15,
       17,
       18,
+      20
+    ],
+    "area": "B6-2.CR8",
+    "walkIndex": 35,
+    "links": [
+      17,
       20
     ]
   },
@@ -620,8 +733,8 @@
       -0.001091421,
       0.454604737
     ],
-    "title": "Station S020",
-    "description": "Scan station S020",
+    "title": "Corridor · B6-2.CR8",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S020.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S020.jpg",
@@ -633,6 +746,13 @@
       24,
       25,
       27
+    ],
+    "area": "B6-2.CR8",
+    "walkIndex": 5,
+    "links": [
+      19,
+      21,
+      24
     ]
   },
   {
@@ -652,8 +772,8 @@
       -0.000849312,
       -0.127291196
     ],
-    "title": "Station S021",
-    "description": "Scan station S021",
+    "title": "Office Urban · B6-215",
+    "description": "Văn phòng",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S021.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S021.jpg",
@@ -663,6 +783,12 @@
       22,
       24,
       27
+    ],
+    "area": "B6-215",
+    "walkIndex": 6,
+    "links": [
+      20,
+      22
     ]
   },
   {
@@ -682,8 +808,8 @@
       -0.001002496,
       0.535498312
     ],
-    "title": "Station S022",
-    "description": "Scan station S022",
+    "title": "Office Urban · B6-216",
+    "description": "Văn phòng",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S022.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S022.jpg",
@@ -695,6 +821,12 @@
       21,
       23,
       27
+    ],
+    "area": "B6-216",
+    "walkIndex": 7,
+    "links": [
+      21,
+      23
     ]
   },
   {
@@ -714,8 +846,8 @@
       -0.000874085,
       0.87941956
     ],
-    "title": "Station S023",
-    "description": "Scan station S023",
+    "title": "Corridor · B6-2.CR7",
+    "description": "Hành lang · khu in ấn/sao chép (B6-214, chung không gian)",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S023.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S023.jpg",
@@ -723,6 +855,12 @@
     "visible": [
       1,
       2,
+      22,
+      27
+    ],
+    "area": "B6-2.CR7",
+    "walkIndex": 8,
+    "links": [
       22,
       27
     ]
@@ -744,7 +882,7 @@
       -0.000905068,
       0.790727313
     ],
-    "title": "Station S024",
+    "title": "BIM - Computer Lab · B6-218",
     "description": "Room B6-218",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S024.jpg",
@@ -755,6 +893,12 @@
       21,
       25,
       26
+    ],
+    "area": "B6-218",
+    "walkIndex": 4,
+    "links": [
+      20,
+      25
     ]
   },
   {
@@ -774,7 +918,7 @@
       -0.000498161,
       0.999911009
     ],
-    "title": "Station S025",
+    "title": "BIM - Computer Lab · B6-218",
     "description": "Room B6-218",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S025.jpg",
@@ -782,6 +926,12 @@
     "thumbnail": "thumbnails/VGU OCT 2026- S025.jpg",
     "visible": [
       20,
+      24,
+      26
+    ],
+    "area": "B6-218",
+    "walkIndex": 3,
+    "links": [
       24,
       26
     ]
@@ -803,7 +953,7 @@
       -0.000865231,
       0.883667388
     ],
-    "title": "Station S026",
+    "title": "BIM - Computer Lab · B6-218",
     "description": "Room B6-218",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S026.jpg",
@@ -812,6 +962,12 @@
     "visible": [
       2,
       24,
+      25
+    ],
+    "area": "B6-218",
+    "walkIndex": 2,
+    "links": [
+      2,
       25
     ]
   },
@@ -832,8 +988,8 @@
       -4.3606e-05,
       -0.585376831
     ],
-    "title": "Station S027",
-    "description": "Scan station S027",
+    "title": "Office Urban · B6-216",
+    "description": "Văn phòng",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S027.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S027.jpg",
@@ -842,6 +998,12 @@
       20,
       21,
       22,
+      23,
+      28
+    ],
+    "area": "B6-216",
+    "walkIndex": 9,
+    "links": [
       23,
       28
     ]
@@ -863,8 +1025,8 @@
       0.000275531,
       -0.759649317
     ],
-    "title": "Station S028",
-    "description": "Scan station S028",
+    "title": "Corridor · B6-2.CR4",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S028.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S028.jpg",
@@ -877,6 +1039,12 @@
       32,
       33,
       34
+    ],
+    "area": "B6-2.CR4",
+    "walkIndex": 10,
+    "links": [
+      27,
+      29
     ]
   },
   {
@@ -896,8 +1064,8 @@
       -0.000874975,
       0.995839034
     ],
-    "title": "Station S029",
-    "description": "Scan station S029",
+    "title": "Corridor · B6-2.CR4",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S029.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S029.jpg",
@@ -909,6 +1077,12 @@
       32,
       33,
       34
+    ],
+    "area": "B6-2.CR4",
+    "walkIndex": 11,
+    "links": [
+      28,
+      30
     ]
   },
   {
@@ -928,8 +1102,8 @@
       -0.000744968,
       0.662397013
     ],
-    "title": "Station S030",
-    "description": "Scan station S030",
+    "title": "Corridor · B6-2.CR4",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S030.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S030.jpg",
@@ -941,6 +1115,12 @@
       32,
       33,
       34
+    ],
+    "area": "B6-2.CR4",
+    "walkIndex": 12,
+    "links": [
+      29,
+      31
     ]
   },
   {
@@ -960,8 +1140,8 @@
       -0.000783328,
       0.652834688
     ],
-    "title": "Station S031",
-    "description": "Scan station S031",
+    "title": "Corridor · B6-2.CR4",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S031.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S031.jpg",
@@ -973,6 +1153,12 @@
       32,
       33,
       34
+    ],
+    "area": "B6-2.CR4",
+    "walkIndex": 13,
+    "links": [
+      30,
+      32
     ]
   },
   {
@@ -992,8 +1178,8 @@
       -0.000730294,
       0.572882591
     ],
-    "title": "Station S032",
-    "description": "Scan station S032",
+    "title": "Corridor · B6-2.CR4",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S032.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S032.jpg",
@@ -1005,6 +1191,12 @@
       31,
       33,
       34
+    ],
+    "area": "B6-2.CR4",
+    "walkIndex": 14,
+    "links": [
+      31,
+      33
     ]
   },
   {
@@ -1024,8 +1216,8 @@
       -0.00084893,
       0.525550666
     ],
-    "title": "Station S033",
-    "description": "Scan station S033",
+    "title": "Corridor · B6-2.CR4",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S033.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S033.jpg",
@@ -1038,6 +1230,12 @@
       32,
       34,
       35
+    ],
+    "area": "B6-2.CR4",
+    "walkIndex": 15,
+    "links": [
+      32,
+      34
     ]
   },
   {
@@ -1057,8 +1255,8 @@
       -0.000590201,
       0.319149615
     ],
-    "title": "Station S034",
-    "description": "Scan station S034",
+    "title": "Corridor · B6-2.CR4",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S034.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S034.jpg",
@@ -1069,6 +1267,12 @@
       30,
       31,
       32,
+      33,
+      35
+    ],
+    "area": "B6-2.CR4",
+    "walkIndex": 16,
+    "links": [
       33,
       35
     ]
@@ -1090,14 +1294,20 @@
       -0.000604826,
       0.381652168
     ],
-    "title": "Station S035",
-    "description": "Scan station S035",
+    "title": "Corridor · B6-2.CR3",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S035.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S035.jpg",
     "thumbnail": "thumbnails/VGU OCT 2026- S035.jpg",
     "visible": [
       33,
+      34,
+      36
+    ],
+    "area": "B6-2.CR3",
+    "walkIndex": 17,
+    "links": [
       34,
       36
     ]
@@ -1119,8 +1329,8 @@
       0.000753392,
       -0.881850926
     ],
-    "title": "Station S036",
-    "description": "Scan station S036",
+    "title": "Corridor · B6-2.CR2",
+    "description": "Hành lang",
     "hasPanorama": true,
     "photo": "photos/VGU OCT 2026- S036.jpg",
     "photoHd": "photos_hd/VGU OCT 2026- S036.jpg",
@@ -1130,6 +1340,12 @@
       4,
       5,
       9,
+      35
+    ],
+    "area": "B6-2.CR2",
+    "walkIndex": 18,
+    "links": [
+      5,
       35
     ]
   }

@@ -9,7 +9,7 @@ Static 360° virtual tour (Three.js) of the 2nd-floor corridors of Building B6 a
 ## Modes
 | Mode | What it shows |
 |---|---|
-| 🚶 Inside Tour | 360° panorama per station, click the floor markers (or W / S) to walk |
+| 🚶 Inside Tour | 360° panorama per station, click the floor markers (stations in line of sight) or W / S to walk along the walking order |
 | 🗺️ 3D Plan | DXF floor plan in 3D with all stations – click a station to jump in |
 | 🧭 Floor Plan | Top-down plan |
 
@@ -27,7 +27,7 @@ floorplan.png/.json   DXF render + its extents in plan metres
 photos/               2560 px panoramas (default)
 photos_hd/            4096 px panoramas ("4K Ultra" button)
 thumbnails/           512 px previews
-tools/                build script + config + source DXF + scan→plan transform
+tools/                build script + config + viewer template + source DXF + scan→plan transform
 ```
 
 ## Rebuild
@@ -35,6 +35,12 @@ tools/                build script + config + source DXF + scan→plan transform
 pip install pillow numpy ezdxf matplotlib shapely
 python tools/build_tour_from_panos.py --config tools/tour_config.json
 ```
+Only the viewer / station data changed (no new panoramas)? This re-uses `scan_stations.json` and needs no panorama folder:
+```
+python tools/build_tour_from_panos.py --update-viewer
+```
+Edit `tools/viewer_template_floorplan.html` (not `index.html`, which is regenerated).
+
 `tools/tour_config.json` → `panorama_dir` must point to the Cyclone export folder (`<station>.jpg` + `<station>.txt`).
 
 * Scan → plan transform (`tools/scan_to_plan_transform.json`): rotation 179.4°, scale ×1000 (m→mm), fitted so all
@@ -42,3 +48,10 @@ python tools/build_tour_from_panos.py --config tools/tour_config.json
 * `pano_yaw_offset_deg = 90`: Cyclone panorama exports are rotated 90° relative to the viewer convention
   (checked on corridor stations S031→S030 and S010→S006).
 * `scanner_height_m` (1.6 m) only affects where the floor markers sit inside the panoramas.
+* **Walking order** (`walkIndex` in `scan_stations.json`): one walk through all stations, built from the registration
+  `links` (preferred) and line of sight; used by W / S, Next / Previous, the guided tour and the default view direction.
+  Start station: `walk_start`. The minimap draws the `links`.
+* **Area names** (`title`, `description`, `area`): DXF room tags on layer `A-AREA-IDEN` (English · code, Vietnamese).
+  Stations inside the corridor hatch only take corridor labels. Fix a wrong one with `area_labels.overrides`
+  (e.g. `"S024": "B6-218"`); `descriptions` still overrides the description text.
+* `texture_cache_max` (default 6): panoramas kept in GPU memory; older ones are freed.
