@@ -211,5 +211,7 @@
       "S023": "B6-2.CR7"
     },
     "_comment": "overrides: force a station to an area code when the automatic choice is wrong"
-  }
+  },
+  "photo_base_url": "https://pub-a2d008360fd34bd5b516639baa7d69d2.r2.dev/vgu-b6-2f",
+  "_photo_base_url": "empty = images next to index.html (GitHub Pages); e.g. https://pub-xxxx.r2.dev/vgu-b6-2f to load photos/, photos_hd/, thumbnails/ from R2"
 }

@@ -399,6 +399,15 @@ def finish_stations(stations, cfg, rp, u2m, out):
         name_areas(stations, labels, make_clear(walls, vcfg.get("lateral_tolerance_m", 0.25)),
                    cfg.get("descriptions", {}), acfg.get("max_distance_m", 25.0), floor, acfg.get("overrides", {}))
         print("area names: %d labels, e.g. %s" % (len(labels), stations[0].get("title")))
+    # image URLs: relative (served next to index.html) or absolute on a CDN / R2 bucket ("photo_base_url")
+    from urllib.parse import quote
+    base = (cfg.get("photo_base_url") or "").strip().rstrip("/")
+    for st in stations:
+        for key, folder in (("photo", "photos"), ("photoHd", "photos_hd"), ("thumbnail", "thumbnails")):
+            rel = f"{folder}/{st['name']}.jpg"
+            st[key] = f"{base}/{quote(rel)}" if base else rel
+    if base:
+        print("images served from", base)
     path, jumps = compute_walk_order(stations, vcfg.get("links", []), cfg.get("walk_start"))
     print("walking order:", " ".join(f"S{i:03d}" for i in path))
     if jumps:
